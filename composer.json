@@ -1,0 +1,23 @@
+{
+    "name": "dcstudio/employee-portal",
+    "description": "DC Studio Employee Portal with Meeting Alignment Feature",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=7.4"
+    },
+    "require-dev": {},
+    "autoload": {
+        "psr-4": {
+            "DCStudio\\": "src/"
+        }
+    },
+    "config": {
+        "platform": {
+            "php": "7.4"
+        }
+    },
+    "scripts": {
+        "start": "php -S localhost:8000"
+    }
+}

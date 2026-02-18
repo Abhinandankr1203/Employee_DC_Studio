@@ -1,0 +1,39 @@
+{
+  "employees": [
+    {
+      "id": 1,
+      "name": "Admin User",
+      "email": "ak53429651201@gmail.com",
+      "department": "Management",
+      "designation": "Admin"
+    },
+    {
+      "id": 2,
+      "name": "Priya Patel",
+      "email": "priya@dcstudio.com",
+      "department": "Development",
+      "designation": "Full Stack Developer"
+    },
+    {
+      "id": 3,
+      "name": "Amit Kumar",
+      "email": "amit@dcstudio.com",
+      "department": "Design",
+      "designation": "UI/UX Designer"
+    },
+    {
+      "id": 4,
+      "name": "Sneha Reddy",
+      "email": "sneha@dcstudio.com",
+      "department": "Marketing",
+      "designation": "Marketing Manager"
+    },
+    {
+      "id": 5,
+      "name": "Vikram Singh",
+      "email": "vikram@dcstudio.com",
+      "department": "Development",
+      "designation": "Backend Developer"
+    }
+  ]
+}

@@ -1,0 +1,809 @@
+/* ==================== TASK TRACKER STYLES ==================== */
+
+/* Page Container */
+#taskTrackerPage {
+    background: #fafafa !important;
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    overflow: hidden;
+}
+
+#taskTrackerPage .tt-container {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Header */
+#taskTrackerPage .tt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    z-index: 100;
+    flex-shrink: 0;
+}
+
+#taskTrackerPage .tt-header .header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#taskTrackerPage .tt-header .header-logo {
+    width: 80px;
+    height: auto;
+}
+
+#taskTrackerPage .back-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: #f5f5f5;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    color: #333;
+}
+
+#taskTrackerPage .back-btn:hover {
+    background: #eb7846;
+    color: white;
+}
+
+#taskTrackerPage .page-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #333;
+    font-family: 'Poppins', sans-serif;
+}
+
+.tt-add-btn {
+    background: linear-gradient(135deg, #eb7846, #e5693a);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.3s ease;
+}
+
+.tt-add-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(235, 120, 70, 0.4);
+}
+
+/* Scrollable body (stats + toolbar + table scroll together) */
+.tt-body {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Stats Bar */
+.tt-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    padding: 20px 30px;
+}
+
+.tt-stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 18px 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border-left: 4px solid #ccc;
+    transition: transform 0.2s ease;
+}
+
+.tt-stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.tt-stat-total { border-left-color: #6366f1; }
+.tt-stat-todo { border-left-color: #f59e0b; }
+.tt-stat-progress { border-left-color: #3b82f6; }
+.tt-stat-done { border-left-color: #10b981; }
+
+.tt-stat-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #333;
+    font-family: 'Poppins', sans-serif;
+}
+
+.tt-stat-total .tt-stat-number { color: #6366f1; }
+.tt-stat-todo .tt-stat-number { color: #f59e0b; }
+.tt-stat-progress .tt-stat-number { color: #3b82f6; }
+.tt-stat-done .tt-stat-number { color: #10b981; }
+
+.tt-stat-label {
+    font-size: 0.8rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Toolbar */
+.tt-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 30px 16px;
+    flex-wrap: wrap;
+}
+
+.tt-search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+}
+
+.tt-search-wrap i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+    font-size: 0.85rem;
+}
+
+.tt-search-wrap input {
+    width: 100%;
+    padding: 10px 12px 10px 36px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: 'Poppins', sans-serif;
+    background: white;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
+}
+
+.tt-search-wrap input:focus {
+    outline: none;
+    border-color: #eb7846;
+}
+
+.tt-filters {
+    display: flex;
+    gap: 8px;
+}
+
+.tt-filters select {
+    padding: 10px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-family: 'Poppins', sans-serif;
+    background: white;
+    color: #555;
+    cursor: pointer;
+    transition: border-color 0.3s;
+}
+
+.tt-filters select:focus {
+    outline: none;
+    border-color: #eb7846;
+}
+
+/* Table Wrapper */
+.tt-table-wrap {
+    padding: 0 30px 30px;
+}
+
+/* Table */
+.tt-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.tt-table thead {
+    z-index: 5;
+}
+
+.tt-table th {
+    background: #f8f9fa;
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: 'Poppins', sans-serif;
+    border-bottom: 2px solid #eee;
+}
+
+.tt-table td {
+    padding: 14px 16px;
+    font-size: 0.9rem;
+    color: #444;
+    border-bottom: 1px solid #f0f0f0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.tt-table tbody tr {
+    transition: background 0.2s;
+}
+
+.tt-table tbody tr:hover {
+    background: #fafafa;
+}
+
+.tt-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Task title cell */
+.tt-task-title {
+    font-weight: 500;
+    color: #333;
+    max-width: 280px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tt-task-desc {
+    font-size: 0.78rem;
+    color: #999;
+    margin-top: 2px;
+    max-width: 280px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Priority Pills */
+.tt-priority {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.tt-priority-high {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.tt-priority-medium {
+    background: #fff7ed;
+    color: #ea580c;
+}
+
+.tt-priority-low {
+    background: #f0fdf4;
+    color: #16a34a;
+}
+
+/* Inline Status Select */
+.tt-status-select {
+    padding: 6px 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    background: white;
+    color: #555;
+    transition: border-color 0.3s;
+}
+
+.tt-status-select:focus {
+    outline: none;
+    border-color: #eb7846;
+}
+
+/* Due date */
+.tt-due-date {
+    font-size: 0.85rem;
+    color: #666;
+    white-space: nowrap;
+}
+
+.tt-due-overdue {
+    color: #dc2626;
+    font-weight: 500;
+}
+
+/* Action buttons */
+.tt-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.tt-action-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+    background: #f5f5f5;
+    color: #666;
+}
+
+.tt-action-btn:hover {
+    background: #eb7846;
+    color: white;
+}
+
+.tt-action-btn.tt-delete-btn:hover {
+    background: #dc2626;
+    color: white;
+}
+
+/* Empty State */
+.tt-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #aaa;
+}
+
+.tt-empty i {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    color: #ddd;
+}
+
+.tt-empty h3 {
+    color: #888;
+    margin-bottom: 8px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.tt-empty p {
+    font-size: 0.9rem;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ==================== MODALS ==================== */
+
+.tt-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.tt-modal-overlay.active {
+    display: flex;
+}
+
+.tt-modal {
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    animation: ttModalIn 0.3s ease;
+}
+
+.tt-modal-sm {
+    max-width: 400px;
+}
+
+@keyframes ttModalIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.tt-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #eee;
+}
+
+.tt-modal-header h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+}
+
+.tt-modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #f5f5f5;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    transition: all 0.2s;
+}
+
+.tt-modal-close:hover {
+    background: #eee;
+    color: #333;
+}
+
+.tt-modal-body {
+    padding: 24px;
+}
+
+.tt-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 24px;
+    border-top: 1px solid #eee;
+}
+
+/* Form Elements */
+.tt-form-group {
+    margin-bottom: 16px;
+}
+
+.tt-form-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 6px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.tt-form-group input,
+.tt-form-group textarea,
+.tt-form-group select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: 'Poppins', sans-serif;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
+}
+
+.tt-form-group input:focus,
+.tt-form-group textarea:focus,
+.tt-form-group select:focus {
+    outline: none;
+    border-color: #eb7846;
+}
+
+.tt-form-group textarea {
+    resize: vertical;
+}
+
+.tt-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+/* Modal Buttons */
+.tt-btn-cancel {
+    padding: 10px 20px;
+    border: 1px solid #e0e0e0;
+    background: white;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    color: #666;
+    transition: all 0.2s;
+}
+
+.tt-btn-cancel:hover {
+    background: #f5f5f5;
+}
+
+.tt-btn-save {
+    padding: 10px 24px;
+    border: none;
+    background: linear-gradient(135deg, #eb7846, #e5693a);
+    color: white;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.3s;
+}
+
+.tt-btn-save:hover {
+    box-shadow: 0 4px 12px rgba(235, 120, 70, 0.4);
+    transform: translateY(-1px);
+}
+
+.tt-btn-delete {
+    padding: 10px 24px;
+    border: none;
+    background: #dc2626;
+    color: white;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.3s;
+}
+
+.tt-btn-delete:hover {
+    background: #b91c1c;
+}
+
+.tt-delete-warning {
+    color: #dc2626;
+    font-size: 0.85rem;
+    margin-top: 8px;
+}
+
+/* Notification Toast */
+.tt-toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    padding: 14px 24px;
+    border-radius: 10px;
+    color: white;
+    font-size: 0.9rem;
+    font-family: 'Poppins', sans-serif;
+    z-index: 2000;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.tt-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.tt-toast.success {
+    background: #10b981;
+}
+
+.tt-toast.error {
+    background: #dc2626;
+}
+
+/* ==================== RESPONSIVE ==================== */
+
+@media (max-width: 768px) {
+    #taskTrackerPage .tt-header {
+        padding: 12px 16px;
+    }
+
+    #taskTrackerPage .tt-header .header-left {
+        gap: 10px;
+    }
+
+    #taskTrackerPage .tt-header .header-logo {
+        width: 60px;
+    }
+
+    #taskTrackerPage .page-title {
+        font-size: 1rem;
+    }
+
+    #taskTrackerPage .back-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .tt-add-btn {
+        padding: 8px 14px;
+        font-size: 0.85rem;
+    }
+
+    .tt-add-btn span {
+        display: none;
+    }
+
+    .tt-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 12px 16px;
+    }
+
+    .tt-stat-card {
+        padding: 12px 14px;
+    }
+
+    .tt-stat-number {
+        font-size: 1.4rem;
+    }
+
+    .tt-stat-label {
+        font-size: 0.7rem;
+    }
+
+    .tt-toolbar {
+        flex-direction: column;
+        padding: 0 16px 12px;
+        gap: 8px;
+    }
+
+    .tt-search-wrap {
+        width: 100%;
+    }
+
+    .tt-filters {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .tt-filters select {
+        flex: 1;
+        min-width: 0;
+        padding: 8px 10px;
+        font-size: 0.82rem;
+    }
+
+    .tt-table-wrap {
+        padding: 0 16px 16px;
+    }
+
+    /* Card layout on mobile */
+    .tt-table thead {
+        display: none;
+    }
+
+    .tt-table,
+    .tt-table tbody,
+    .tt-table tr,
+    .tt-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .tt-table tbody tr {
+        background: white;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        padding: 14px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+        border: none;
+    }
+
+    .tt-table td {
+        padding: 4px 0;
+        border: none;
+        text-align: left;
+    }
+
+    .tt-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 0.75rem;
+        color: #888;
+        text-transform: uppercase;
+        display: block;
+        margin-bottom: 2px;
+    }
+
+    .tt-task-title {
+        max-width: none;
+        font-size: 1rem;
+    }
+
+    .tt-task-desc {
+        max-width: none;
+    }
+
+    .tt-actions {
+        margin-top: 8px;
+    }
+
+    .tt-action-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .tt-form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .tt-modal {
+        width: 95%;
+        margin: 10px;
+    }
+
+    .tt-modal-header {
+        padding: 16px 18px;
+    }
+
+    .tt-modal-body {
+        padding: 18px;
+    }
+
+    .tt-modal-footer {
+        padding: 14px 18px;
+    }
+
+    .tt-empty {
+        padding: 40px 16px;
+    }
+
+    .tt-empty i {
+        font-size: 2.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    #taskTrackerPage .tt-header {
+        padding: 10px 12px;
+    }
+
+    .tt-stats {
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    .tt-stat-card {
+        padding: 10px 12px;
+    }
+
+    .tt-stat-number {
+        font-size: 1.2rem;
+    }
+
+    .tt-toolbar {
+        padding: 0 12px 10px;
+    }
+
+    .tt-table-wrap {
+        padding: 0 12px 12px;
+    }
+
+    .tt-table tbody tr {
+        padding: 12px;
+    }
+}

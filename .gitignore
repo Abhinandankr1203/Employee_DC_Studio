@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Sensitive credentials - DO NOT COMMIT
+credentials.json
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Build artifacts
+dist/
+build/
+
+# Windows reserved device name (can't be committed on Windows)
+nul

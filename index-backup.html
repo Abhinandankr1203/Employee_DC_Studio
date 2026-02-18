@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DC Studio - Employee Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f8f8f8;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ==================== PAGE TRANSITIONS ==================== */
+        .page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: scale(1.02);
+            z-index: 1;
+        }
+
+        .page.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+            z-index: 10;
+        }
+
+        .page.fade-out {
+            opacity: 0;
+            transform: scale(0.98);
+        }
+
+        /* ==================== LOGIN PAGE ==================== */
+        #loginPage {
+            background: #f5f5f5;
+        }
+
+        .login-container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Orange line strip on left edge */
+        .left-strip {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 8px;
+            height: 100%;
+            background: linear-gradient(180deg, #eb7846 0%, #e5693a 100%);
+            z-index: 100;
+        }
+
+        /* Left Section - Logo with Wireframe */
+        .logo-section {
+            flex: 1.4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            padding-left: 20px;
+        }
+
+        /* Animated Wireframe Circles */
+        .wireframe-container {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            right: -50px;
+            bottom: -50px;
+        }
+
+        .wireframe-circle {
+            display: none;
+        }
+
+        .wireframe-circle:nth-child(1) {
+            display: none;
+        }
+
+        .wireframe-circle:nth-child(2) {
+            display: none;
+        }
+
+        .wireframe-circle:nth-child(3) {
+            display: none;
+        }
+
+        .wireframe-circle:nth-child(4) {
+            display: none;
+        }
+
+        .wireframe-circle:nth-child(5) {
+            display: none;
+        }
+
+        /* Spiral wireframe effect */
+        .wireframe-spiral {
+            position: absolute;
+            width: 550px;
+            height: 550px;
+            opacity: 0.6;
+            right: -80px;
+            bottom: -80px;
+        }
+
+        .wireframe-spiral svg {
+            width: 100%;
+            height: 100%;
+            animation: rotateSpiral 60s linear infinite;
+        }
+
+        @keyframes rotateWireframe {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes rotateSpiral {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .main-logo {
+            width: 420px;
+            height: auto;
+            z-index: 2;
+            opacity: 0;
+            animation: logoFadeIn 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
+            filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.08));
+        }
+
+        @keyframes logoFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* Right Section - Login Form */
+        .form-section {
+            flex: 0.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            padding-right: 60px;
+        }
+
+        .login-card {
+            background: white;
+            padding: 35px 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+            width: 100%;
+            max-width: 300px;
+            text-align: center;
+            opacity: 0;
+            animation: cardSlideIn 1s cubic-bezier(0.4, 0, 0.2, 1) 0.5s forwards;
+        }
+
+        @keyframes cardSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .login-icon {
+            display: none;
+        }
+
+        .login-icon i {
+            display: none;
+        }
+
+        .login-card h2 {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin-bottom: 25px;
+        }
+
+        .login-card .subtitle {
+            display: none;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 14px;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+            font-size: 13px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            border: none;
+            background: #f5f5f5;
+            border-radius: 10px;
+            font-size: 13px;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .input-group input:focus {
+            outline: none;
+            background: #f0f0f0;
+            box-shadow: 0 0 0 2px rgba(235, 120, 70, 0.15);
+        }
+
+        .input-group input::placeholder {
+            color: #aaa;
+            font-size: 12px;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #eb7846 0%, #e5693a 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 0;
+            margin-top: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .login-btn:hover::before {
+            left: 100%;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(235, 120, 70, 0.35);
+        }
+
+        .forgot-password {
+            display: none;
+        }
+
+        .forgot-password:hover {
+            color: #eb7846;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 15px;
+            min-height: 18px;
+        }
+
+        .test-info {
+            display: none;
+        }
+
+        .test-info strong {
+            display: none;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 11px;
+            margin-top: 12px;
+            min-height: 16px;
+        }
+
+        /* ==================== GREETING PAGE ==================== */
+        #greetingPage {
+            background: #ffffff;
+        }
+
+        .greeting-container {
+            display: flex;
+            height: 100vh;
+            padding: 80px;
+            position: relative;
+        }
+
+        .greeting-left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-left: 60px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .greeting-text h1 {
+            font-size: 58px;
+            font-weight: 500;
+            color: #4a4a4a;
+            margin-bottom: 0;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .greeting-text h1.animate {
+            animation: greetingSlide 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .greeting-text .employee-name {
+            font-size: 54px;
+            font-weight: 500;
+            color: #eb7846;
+            font-style: italic;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .greeting-text .employee-name.animate {
+            animation: greetingSlide 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s forwards;
+        }
+
+        @keyframes greetingSlide {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .greeting-line {
+            width: 0;
+            max-width: 450px;
+            height: 1px;
+            background: linear-gradient(90deg, #ccc, transparent);
+            margin-top: 25px;
+        }
+
+        .greeting-line.animate {
+            animation: lineExpand 1s cubic-bezier(0.4, 0, 0.2, 1) 0.4s forwards;
+        }
+
+        @keyframes lineExpand {
+            to { width: 100%; }
+        }
+
+        /* Person Illustration - Matching PDF Style */
+        .person-container {
+            margin-top: 30px;
+            opacity: 0;
+            transform: translateY(40px);
+        }
+
+        .person-container.animate {
+            animation: personSlide 1s cubic-bezier(0.4, 0, 0.2, 1) 0.6s forwards;
+        }
+
+        @keyframes personSlide {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .person-illustration {
+            width: 220px;
+            height: auto;
+        }
+
+        .greeting-right {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .greeting-logo {
+            width: 380px;
+            height: auto;
+            opacity: 0;
+            transform: scale(0.9);
+        }
+
+        .greeting-logo.animate {
+            animation: logoScale 1s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
+        }
+
+        @keyframes logoScale {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* ==================== DASHBOARD PAGE ==================== */
+        #dashboardPage {
+            background: #fafafa;
+        }
+
+        .dashboard-container {
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 25px;
+            background: white;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.04);
+            position: relative;
+            z-index: 10;
+        }
+
+        .header-logo {
+            width: 45px;
+            height: auto;
+        }
+
+        .user-profile {
+            width: 38px;
+            height: 38px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .user-profile:hover {
+            transform: scale(1.1);
+        }
+
+        .user-profile i {
+            font-size: 30px;
+            color: #333;
+        }
+
+        .dashboard-content {
+            display: flex;
+            height: calc(100vh - 62px);
+            padding: 30px 40px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .dashboard-left {
+            width: 220px;
+            display: flex;
+            align-items: flex-end;
+            padding-bottom: 30px;
+        }
+
+        .dashboard-person {
+            width: 180px;
+            opacity: 0.85;
+        }
+
+        .menu-section {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 140px);
+            grid-template-rows: repeat(2, 140px);
+            gap: 18px;
+        }
+
+        .menu-item {
+            background: white;
+            border-radius: 18px;
+            padding: 22px 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+        }
+
+        .menu-item.animate {
+            animation: menuPop 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .menu-item:nth-child(1) { animation-delay: 0.05s; }
+        .menu-item:nth-child(2) { animation-delay: 0.1s; }
+        .menu-item:nth-child(3) { animation-delay: 0.15s; }
+        .menu-item:nth-child(4) { animation-delay: 0.2s; }
+        .menu-item:nth-child(5) { animation-delay: 0.25s; }
+        .menu-item:nth-child(6) { animation-delay: 0.3s; }
+        .menu-item:nth-child(7) { animation-delay: 0.35s; }
+        .menu-item:nth-child(8) { animation-delay: 0.4s; }
+
+        @keyframes menuPop {
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .menu-item:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .bookmark {
+            position: absolute;
+            top: -2px;
+            right: 18px;
+            width: 18px;
+            height: 30px;
+            background: #eb7846;
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 75%, 0 100%);
+        }
+
+        .menu-icon {
+            width: 42px;
+            height: 42px;
+            background: #1a1a1a;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .menu-icon.orange {
+            background: #eb7846;
+        }
+
+        .menu-icon i {
+            color: white;
+            font-size: 18px;
+        }
+
+        .menu-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: #333;
+            line-height: 1.35;
+        }
+
+        /* Background Illustration */
+        .bg-illustration {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 250px;
+            opacity: 0.15;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300"><rect fill="%23ddd" x="50" y="180" width="80" height="120" rx="3"/><rect fill="%23ccc" x="60" y="200" width="25" height="30" rx="2"/><rect fill="%23ccc" x="95" y="200" width="25" height="30" rx="2"/><rect fill="%23bbb" x="180" y="150" width="100" height="150" rx="3"/><rect fill="%23aaa" x="200" y="170" width="30" height="40" rx="2"/><rect fill="%23aaa" x="240" y="170" width="30" height="40" rx="2"/><circle fill="%23ddd" cx="400" cy="250" r="40"/><rect fill="%23ccc" x="500" y="200" width="60" height="100" rx="3"/><rect fill="%23ddd" x="600" y="160" width="120" height="140" rx="3"/><circle fill="%23bbb" cx="800" cy="260" r="30"/><rect fill="%23ccc" x="900" y="180" width="90" height="120" rx="3"/><rect fill="%23ddd" x="1050" y="200" width="70" height="100" rx="3"/></svg>') no-repeat bottom center;
+            background-size: cover;
+            z-index: 1;
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1100px) {
+            .menu-grid {
+                grid-template-columns: repeat(4, 120px);
+                grid-template-rows: repeat(2, 120px);
+                gap: 15px;
+            }
+            .dashboard-left { display: none; }
+            .main-logo { width: 350px; }
+        }
+
+        @media (max-width: 768px) {
+            .login-container { flex-direction: column; }
+            .logo-section { flex: 0; padding: 40px; }
+            .main-logo { width: 250px; }
+            .wireframe-container { width: 300px; height: 300px; right: -50px; bottom: -50px; }
+            .wireframe-spiral { width: 280px; height: 280px; }
+            .left-strip { width: 5px; }
+            .form-section { padding: 20px; flex: 1; }
+            .login-card { max-width: 280px; }
+            .greeting-container { flex-direction: column; padding: 40px; }
+            .greeting-left { padding-left: 0; align-items: center; text-align: center; }
+            .greeting-text h1 { font-size: 38px; }
+            .greeting-text .employee-name { font-size: 36px; }
+            .greeting-logo { width: 250px; }
+            .menu-grid { grid-template-columns: repeat(2, 140px); }
+        }
+    </style>
+</head>
+<body>
+    <!-- ==================== LOGIN PAGE ==================== -->
+    <div id="loginPage" class="page active">
+        <div class="login-container">
+            <!-- Orange strip on left edge -->
+            <div class="left-strip"></div>
+            <div class="logo-section">
+                <!-- Wireframe Animation -->
+                <div class="wireframe-container">
+                    <div class="wireframe-circle"></div>
+                    <div class="wireframe-circle"></div>
+                    <div class="wireframe-circle"></div>
+                    <div class="wireframe-circle"></div>
+                    <div class="wireframe-circle"></div>
+                </div>
+                <!-- Spiral Wireframe SVG - Concentric arcs pattern -->
+                <div class="wireframe-spiral">
+                    <svg viewBox="0 0 400 400">
+                        <defs>
+                            <linearGradient id="spiralGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#c9956c;stop-opacity:0.8" />
+                                <stop offset="100%" style="stop-color:#ddb896;stop-opacity:0.5" />
+                            </linearGradient>
+                        </defs>
+                        <!-- Concentric arc lines like the image -->
+                        <path d="M0,400 Q0,200 200,200 Q400,200 400,0" fill="none" stroke="url(#spiralGrad)" stroke-width="1.5"/>
+                        <path d="M0,350 Q0,175 175,175 Q350,175 350,0" fill="none" stroke="url(#spiralGrad)" stroke-width="1.5"/>
+                        <path d="M0,300 Q0,150 150,150 Q300,150 300,0" fill="none" stroke="url(#spiralGrad)" stroke-width="1.5"/>
+                        <path d="M0,250 Q0,125 125,125 Q250,125 250,0" fill="none" stroke="url(#spiralGrad)" stroke-width="1.5"/>
+                        <path d="M0,200 Q0,100 100,100 Q200,100 200,0" fill="none" stroke="url(#spiralGrad)" stroke-width="1.5"/>
+                        <path d="M0,150 Q0,75 75,75 Q150,75 150,0" fill="none" stroke="url(#spiralGrad)" stroke-width="1.5"/>
+                        <path d="M0,100 Q0,50 50,50 Q100,50 100,0" fill="none" stroke="url(#spiralGrad)" stroke-width="1.5"/>
+                        <path d="M0,50 Q0,25 25,25 Q50,25 50,0" fill="none" stroke="url(#spiralGrad)" stroke-width="1.5"/>
+                    </svg>
+                </div>
+                <img src="new end.jpg" alt="DC Studio Logo" class="main-logo">
+            </div>
+            <div class="form-section">
+                <div class="login-card">
+                    <h2>Sign in with email</h2>
+                    <form id="loginForm">
+                        <div class="input-group">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="email" name="email" placeholder="Email" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="password" name="password" placeholder="Password" required>
+                        </div>
+                        <button type="submit" class="login-btn">Login</button>
+                    </form>
+                    <p id="errorMsg" class="error-message"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== GREETING PAGE ==================== -->
+    <div id="greetingPage" class="page">
+        <div class="greeting-container">
+            <div class="greeting-left">
+                <div class="greeting-text">
+                    <h1 id="greetingTitle">Greetings,</h1>
+                    <h2 class="employee-name" id="employeeName">Employee Name</h2>
+                    <div class="greeting-line" id="greetingLine"></div>
+                </div>
+                <div class="person-container" id="personContainer">
+                    <!-- Person SVG matching PDF style -->
+                    <svg class="person-illustration" viewBox="0 0 240 380">
+                        <!-- Hair Top -->
+                        <path d="M85 75 Q90 45 110 50 Q115 35 130 40 Q140 30 155 38 Q165 32 175 45 Q185 40 188 55 Q195 50 195 70 Q200 65 198 80" fill="#1a1a1a"/>
+
+                        <!-- Face -->
+                        <ellipse cx="140" cy="95" rx="50" ry="55" fill="#f0d5c4"/>
+
+                        <!-- Hair sides -->
+                        <path d="M90 80 Q85 95 90 110 Q88 90 95 80 Z" fill="#1a1a1a"/>
+                        <path d="M190 80 Q195 95 190 110 Q192 90 185 80 Z" fill="#1a1a1a"/>
+
+                        <!-- Ears -->
+                        <ellipse cx="88" cy="95" rx="8" ry="12" fill="#f0d5c4"/>
+                        <ellipse cx="192" cy="95" rx="8" ry="12" fill="#f0d5c4"/>
+
+                        <!-- Beard -->
+                        <path d="M95 105 Q95 160 140 175 Q185 160 185 105 Q180 140 140 155 Q100 140 95 105" fill="#1a1a1a"/>
+
+                        <!-- Glasses Frame -->
+                        <rect x="100" y="78" width="35" height="28" rx="4" fill="none" stroke="#333" stroke-width="2.5"/>
+                        <rect x="145" y="78" width="35" height="28" rx="4" fill="none" stroke="#333" stroke-width="2.5"/>
+                        <path d="M135 92 L145 92" stroke="#333" stroke-width="2.5"/>
+                        <path d="M100 88 L88 85" stroke="#333" stroke-width="2"/>
+                        <path d="M180 88 L192 85" stroke="#333" stroke-width="2"/>
+
+                        <!-- Eyes -->
+                        <circle cx="117" cy="92" r="5" fill="#2a2a2a"/>
+                        <circle cx="163" cy="92" r="5" fill="#2a2a2a"/>
+                        <circle cx="118" cy="90" r="2" fill="#fff"/>
+                        <circle cx="164" cy="90" r="2" fill="#fff"/>
+
+                        <!-- Eyebrows -->
+                        <path d="M102 72 Q117 67 132 72" fill="none" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M148 72 Q163 67 178 72" fill="none" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+
+                        <!-- Mouth -->
+                        <path d="M125 125 Q140 135 155 125" fill="none" stroke="#c9a090" stroke-width="2" stroke-linecap="round"/>
+
+                        <!-- Neck -->
+                        <rect x="125" y="165" width="30" height="30" fill="#f0d5c4"/>
+
+                        <!-- Shirt Collar -->
+                        <path d="M110 195 L140 230 L170 195" fill="#fff" stroke="#eee" stroke-width="1"/>
+
+                        <!-- Suit Jacket -->
+                        <path d="M60 380 L60 210 Q60 195 85 195 L110 195 L140 235 L170 195 L195 195 Q220 195 220 210 L220 380" fill="#6b6b6b"/>
+
+                        <!-- Lapels -->
+                        <path d="M110 195 L130 235 L115 380" fill="#5a5a5a"/>
+                        <path d="M170 195 L150 235 L165 380" fill="#5a5a5a"/>
+
+                        <!-- Tie -->
+                        <path d="M133 205 L140 235 L147 205 L144 290 L140 300 L136 290 Z" fill="#808080"/>
+
+                        <!-- Left Arm -->
+                        <path d="M60 215 Q35 250 45 300 Q50 340 70 365" stroke="#6b6b6b" stroke-width="28" fill="none" stroke-linecap="round"/>
+
+                        <!-- Right Arm -->
+                        <path d="M220 215 Q240 250 235 290 Q232 310 225 330" stroke="#6b6b6b" stroke-width="28" fill="none" stroke-linecap="round"/>
+
+                        <!-- Left Hand -->
+                        <circle cx="70" cy="370" r="15" fill="#f0d5c4"/>
+
+                        <!-- Right Hand -->
+                        <circle cx="225" cy="335" r="15" fill="#f0d5c4"/>
+
+                        <!-- Watch -->
+                        <rect x="52" y="340" width="18" height="25" rx="3" fill="#2a2a2a"/>
+                        <rect x="55" y="344" width="12" height="17" rx="1" fill="#4a9eda"/>
+
+                        <!-- Bag -->
+                        <ellipse cx="80" cy="390" rx="40" ry="22" fill="#1a1a1a"/>
+                        <text x="60" y="395" fill="#fff" font-size="9" font-family="Arial" font-weight="bold">#FGEAR</text>
+                    </svg>
+                </div>
+            </div>
+            <div class="greeting-right">
+                <img src="new end.jpg" alt="DC Studio Logo" class="greeting-logo" id="greetingLogo">
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== DASHBOARD PAGE ==================== -->
+    <div id="dashboardPage" class="page">
+        <div class="dashboard-container">
+            <header class="dashboard-header">
+                <img src="new end.jpg" alt="DC Studio" class="header-logo">
+                <div class="user-profile" id="userProfile">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+            </header>
+            <div class="dashboard-content">
+                <div class="dashboard-left">
+                    <!-- Same person illustration -->
+                    <svg class="dashboard-person" viewBox="0 0 240 380">
+                        <path d="M85 75 Q90 45 110 50 Q115 35 130 40 Q140 30 155 38 Q165 32 175 45 Q185 40 188 55 Q195 50 195 70 Q200 65 198 80" fill="#1a1a1a"/>
+                        <ellipse cx="140" cy="95" rx="50" ry="55" fill="#f0d5c4"/>
+                        <path d="M90 80 Q85 95 90 110 Q88 90 95 80 Z" fill="#1a1a1a"/>
+                        <path d="M190 80 Q195 95 190 110 Q192 90 185 80 Z" fill="#1a1a1a"/>
+                        <ellipse cx="88" cy="95" rx="8" ry="12" fill="#f0d5c4"/>
+                        <ellipse cx="192" cy="95" rx="8" ry="12" fill="#f0d5c4"/>
+                        <path d="M95 105 Q95 160 140 175 Q185 160 185 105 Q180 140 140 155 Q100 140 95 105" fill="#1a1a1a"/>
+                        <rect x="100" y="78" width="35" height="28" rx="4" fill="none" stroke="#333" stroke-width="2.5"/>
+                        <rect x="145" y="78" width="35" height="28" rx="4" fill="none" stroke="#333" stroke-width="2.5"/>
+                        <path d="M135 92 L145 92" stroke="#333" stroke-width="2.5"/>
+                        <path d="M100 88 L88 85" stroke="#333" stroke-width="2"/>
+                        <path d="M180 88 L192 85" stroke="#333" stroke-width="2"/>
+                        <circle cx="117" cy="92" r="5" fill="#2a2a2a"/>
+                        <circle cx="163" cy="92" r="5" fill="#2a2a2a"/>
+                        <circle cx="118" cy="90" r="2" fill="#fff"/>
+                        <circle cx="164" cy="90" r="2" fill="#fff"/>
+                        <path d="M102 72 Q117 67 132 72" fill="none" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M148 72 Q163 67 178 72" fill="none" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M125 125 Q140 135 155 125" fill="none" stroke="#c9a090" stroke-width="2" stroke-linecap="round"/>
+                        <rect x="125" y="165" width="30" height="30" fill="#f0d5c4"/>
+                        <path d="M110 195 L140 230 L170 195" fill="#fff" stroke="#eee" stroke-width="1"/>
+                        <path d="M60 380 L60 210 Q60 195 85 195 L110 195 L140 235 L170 195 L195 195 Q220 195 220 210 L220 380" fill="#6b6b6b"/>
+                        <path d="M110 195 L130 235 L115 380" fill="#5a5a5a"/>
+                        <path d="M170 195 L150 235 L165 380" fill="#5a5a5a"/>
+                        <path d="M133 205 L140 235 L147 205 L144 290 L140 300 L136 290 Z" fill="#808080"/>
+                        <path d="M60 215 Q35 250 45 300 Q50 340 70 365" stroke="#6b6b6b" stroke-width="28" fill="none" stroke-linecap="round"/>
+                        <path d="M220 215 Q240 250 235 290 Q232 310 225 330" stroke="#6b6b6b" stroke-width="28" fill="none" stroke-linecap="round"/>
+                        <circle cx="70" cy="370" r="15" fill="#f0d5c4"/>
+                        <circle cx="225" cy="335" r="15" fill="#f0d5c4"/>
+                        <rect x="52" y="340" width="18" height="25" rx="3" fill="#2a2a2a"/>
+                        <rect x="55" y="344" width="12" height="17" rx="1" fill="#4a9eda"/>
+                        <ellipse cx="80" cy="390" rx="40" ry="22" fill="#1a1a1a"/>
+                        <text x="60" y="395" fill="#fff" font-size="9" font-family="Arial" font-weight="bold">#FGEAR</text>
+                    </svg>
+                </div>
+                <div class="menu-section">
+                    <div class="menu-grid" id="menuGrid">
+                        <div class="menu-item">
+                            <div class="bookmark"></div>
+                            <div class="menu-icon orange">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <span class="menu-title">Task<br>Tracker</span>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-icon">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                            <span class="menu-title">Project<br>Tracker</span>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-icon">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <span class="menu-title">Reports</span>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <span class="menu-title">Team</span>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-icon">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <span class="menu-title">Meeting<br>Alignment</span>
+                        </div>
+                        <div class="menu-item">
+                            <div class="bookmark"></div>
+                            <div class="menu-icon">
+                                <i class="fas fa-door-open"></i>
+                            </div>
+                            <span class="menu-title">Leaves</span>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-icon">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                            <span class="menu-title">Salary<br>Tracker</span>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <span class="menu-title">Calender</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-illustration"></div>
+        </div>
+    </div>
+
+    <script>
+        // Test User Database
+        const users = {
+            'test@dcstudio.com': { password: 'test123', name: 'Rahul Sharma' }
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('loginForm');
+            const loginPage = document.getElementById('loginPage');
+            const greetingPage = document.getElementById('greetingPage');
+            const dashboardPage = document.getElementById('dashboardPage');
+            const employeeNameEl = document.getElementById('employeeName');
+            const errorMsg = document.getElementById('errorMsg');
+
+            // Login Handler
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const email = document.getElementById('email').value.toLowerCase().trim();
+                const password = document.getElementById('password').value;
+                const loginBtn = document.querySelector('.login-btn');
+
+                loginBtn.innerHTML = '<span class="loading"></span>';
+                loginBtn.disabled = true;
+                errorMsg.textContent = '';
+
+                setTimeout(() => {
+                    if (users[email] && users[email].password === password) {
+                        employeeNameEl.textContent = users[email].name;
+                        transitionPages(loginPage, greetingPage, () => {
+                            triggerGreetingAnimations();
+                            setTimeout(() => {
+                                transitionPages(greetingPage, dashboardPage, triggerDashboardAnimations);
+                            }, 3200);
+                        });
+                    } else {
+                        errorMsg.textContent = 'Invalid email or password.';
+                        loginBtn.innerHTML = 'Login';
+                        loginBtn.disabled = false;
+                    }
+                }, 800);
+            });
+
+            // Smooth Page Transition
+            function transitionPages(fromPage, toPage, callback) {
+                fromPage.classList.add('fade-out');
+
+                setTimeout(() => {
+                    fromPage.classList.remove('active', 'fade-out');
+                    toPage.classList.add('active');
+                    if (callback) callback();
+                }, 600);
+            }
+
+            // Trigger Greeting Page Animations
+            function triggerGreetingAnimations() {
+                document.getElementById('greetingTitle').classList.add('animate');
+                document.getElementById('employeeName').classList.add('animate');
+                document.getElementById('greetingLine').classList.add('animate');
+                document.getElementById('personContainer').classList.add('animate');
+                document.getElementById('greetingLogo').classList.add('animate');
+            }
+
+            // Trigger Dashboard Animations
+            function triggerDashboardAnimations() {
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    item.classList.add('animate');
+                });
+            }
+
+            // Menu Click Handler
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const title = this.querySelector('.menu-title').innerText.replace(/\n/g, ' ');
+                    alert('Opening: ' + title);
+                });
+            });
+
+            // Logout Handler
+            document.getElementById('userProfile').addEventListener('click', function() {
+                if (confirm('Logout?')) {
+                    dashboardPage.classList.remove('active');
+                    greetingPage.classList.remove('active');
+                    loginPage.classList.add('active');
+
+                    // Reset form
+                    document.getElementById('email').value = '';
+                    document.getElementById('password').value = '';
+                    document.querySelector('.login-btn').innerHTML = 'Login';
+                    document.querySelector('.login-btn').disabled = false;
+
+                    // Reset animations
+                    document.querySelectorAll('.animate').forEach(el => el.classList.remove('animate'));
+                }
+            });
+        });
+    </script>
+</body>
+</html>

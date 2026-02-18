@@ -1,0 +1,95 @@
+screeding-before-start-of-work-1',
+    12→      label: "Is the layout marking and floor levels verified?",
+    13→      type: 'percentage-remarks',
+    14→      hasMedia: true,
+    15→    },
+    16→    {
+    17→      id: 'screeding-before-start-of-work-2',
+    18→      label: "Is the sub base cleaned before taking up the laying of screed?",
+    19→      type: 'percentage-remarks',
+    20→      hasMedia: true,
+    21→    },
+    22→    {
+    23→      id: 'screeding-before-start-of-work-3',
+    24→      label: "Are the material grades as per the specifications?",
+    25→      type: 'percentage-remarks',
+    26→      hasMedia: true,
+    27→    },
+    28→    {
+    29→      id: 'screeding-before-start-of-work-4',
+    30→      label: "Are the conduits, raceways and junction boxes laid as per the requirement?",
+    31→      type: 'percentage-remarks',
+    32→      hasMedia: true,
+    33→    },
+    34→    {
+    35→      id: 'screeding-before-start-of-work-5',
+    36→      label: "Is the level of raceways and junction boxes verified? (Is there adequate clearance on top of the raceways for the adherence of the screed?)",
+    37→      type: 'percentage-remarks',
+    38→      hasMedia: true,
+    39→    },
+    40→  ];
+    41→
+    42→  const screedingDuringExecutionItems: ChecklistItem[] = [
+    43→    {
+    44→      id: 'screeding-during-execution-1',
+    45→      label: "Is the screeding being done uniformly?",
+    46→      type: 'percentage-remarks',
+    47→      hasMedia: true,
+    48→    },
+    49→    {
+    50→      id: 'screeding-during-execution-2',
+    51→      label: "Is the mix of the screed as per the specifications?",
+    52→      type: 'percentage-remarks',
+    53→      hasMedia: true,
+    54→    },
+    55→  ];
+    56→
+    57→  const screedingPostCompletionItems: ChecklistItem[] = [
+    58→    {
+    59→      id: 'screeding-post-completion-1',
+    60→      label: "Has the levels of the finished floor been checked before the setting of the screed?",
+    61→      type: 'percentage-remarks',
+    62→      hasMedia: true,
+    63→    },
+    64→    {
+    65→      id: 'screeding-post-completion-2',
+    66→      label: "Is the finished floor being cured adequately?",
+    67→      type: 'percentage-remarks',
+    68→      hasMedia: true,
+    69→    },
+    70→    {
+    71→      id: 'screeding-post-completion-3',
+    72→      label: "Is the level of the junction boxes in line with the finished floor level?",
+    73→      type: 'percentage-remarks',
+    74→      hasMedia: true,
+    75→    },
+    76→    {
+    77→      id: 'screeding-post-completion-4',
+    78→      label: "Is the position of output cables and wire entry in place?",
+    79→      type: 'percentage-remarks',
+    80→      hasMedia: true,
+    81→    },
+    82→  ];
+    83→
+    84→  const frameworkBeforeStartofWorkItems: ChecklistItem[] = [
+    85→    {
+    86→      id: 'framework-before-start-of-work-1',
+    87→      label: "Is the marking for partitions verified?",
+    88→      type: 'percentage-remarks',
+    89→      hasMedia: true,
+    90→    },
+    91→    {
+    92→      id: 'framework-before-start-of-work-2',
+    93→      label: "Is the material used for framework as per the specifications?",
+    94→      type: 'percentage-remarks',
+    95→      hasMedia: true,
+    96→    },
+    97→    {
+    98→      id: 'framework-before-start-of-work-3',
+    99→      label: "Have the routes for services been verified before making provisions for the same?",
+   100→      type: 'percentage-remarks',
+
+<system-reminder>
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+</system-reminder>
+"}]},"uuid":"a428d01c-acc4-4c90-b088-3403f232b80a","timestamp":"2026-01-30T18:17:01.003Z"},"normalizedMessages":[],"type":"agent_progress","prompt":"Explore E:\\Dc_Studio_Report thoroughly. List all files recursively, read package.json, all source files (components, pages, routes, app files, etc.). I need to understand the full structure, tech stack, and what this project does so I can integrate it into another project.","agentId":"aaabc07"},"toolUseID":"agent_msg_01JPVyTvvfef8zZMwHB3MUxc","parentToolUseID":"toolu_018oGx8B6U2GXT92Wt8A7N8F","uuid":"1fea33d0-289a-4bbe-b3a1-59e4323c7242","timestamp":"2026-01-30T18:17:02.123Z"}

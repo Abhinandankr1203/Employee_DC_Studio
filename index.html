@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DC Studio - Employee Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/meeting-alignment.css">
+    <link rel="stylesheet" href="css/reports.css">
+    <link rel="stylesheet" href="css/task-tracker.css">
+    <link rel="stylesheet" href="css/calendar.css">
+    <style>
+        /* Additional inline styles for animations */
+
+        .left-strip {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 8px;
+            height: 100%;
+            background: linear-gradient(180deg, #eb7846 0%, #e5693a 100%);
+            z-index: 100;
+        }
+
+        /* Animated vertical strips container */
+        .animated-strips {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .strip {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 2px;
+            right: -2px;
+            background: rgba(200, 200, 200, 0.4);
+            animation: moveStrip 8s linear infinite;
+        }
+
+        .strip:nth-child(1) { animation-delay: 0s; }
+        .strip:nth-child(2) { animation-delay: -1s; }
+        .strip:nth-child(3) { animation-delay: -2s; }
+        .strip:nth-child(4) { animation-delay: -3s; }
+        .strip:nth-child(5) { animation-delay: -4s; }
+        .strip:nth-child(6) { animation-delay: -5s; }
+        .strip:nth-child(7) { animation-delay: -6s; }
+        .strip:nth-child(8) { animation-delay: -7s; }
+
+        @keyframes moveStrip {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(calc(-100vw - 100px));
+            }
+        }
+
+        /* Main logo styling */
+        .main-logo {
+            width: 1100px;
+            height: auto;
+            z-index: 2;
+            opacity: 0;
+            animation: logoFadeIn 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
+            filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.08));
+        }
+
+        @keyframes logoFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .person-illustration,
+        .dashboard-person {
+            width: 220px;
+            height: auto;
+            max-width: 100%;
+            object-fit: contain;
+        }
+
+        /* Mobile adjustments for inline-styled elements */
+        @media (max-width: 992px) {
+            .main-logo {
+                width: 200px !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-logo {
+                width: 160px !important;
+            }
+
+            .person-illustration,
+            .dashboard-person {
+                width: 160px;
+            }
+
+            .left-strip {
+                width: 4px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .main-logo {
+                width: 120px !important;
+            }
+
+            .person-illustration,
+            .dashboard-person {
+                width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- LOGIN PAGE -->
+    <div id="loginPage" class="page active">
+        <div class="login-container">
+            <!-- Animated vertical strips background -->
+            <div class="animated-strips">
+                <div class="strip"></div>
+                <div class="strip"></div>
+                <div class="strip"></div>
+                <div class="strip"></div>
+                <div class="strip"></div>
+                <div class="strip"></div>
+                <div class="strip"></div>
+                <div class="strip"></div>
+            </div>
+            <div class="left-strip"></div>
+            <div class="logo-section">
+                <!-- DC Studio Logo -->
+                <img src="DC Studio Logo new end.png" alt="DC Studio Logo" class="main-logo">
+            </div>
+            <div class="form-section">
+                <div class="login-card">
+                    <h2>Sign in with email</h2>
+                    <form id="loginForm">
+                        <div class="input-group">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="email" name="email" placeholder="Email" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="password" name="password" placeholder="Password" required>
+                        </div>
+                        <button type="submit" class="login-btn">Login</button>
+                    </form>
+                    <p id="errorMsg" class="error-message"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GREETING PAGE -->
+    <div id="greetingPage" class="page">
+        <div class="greeting-container">
+            <div class="greeting-left">
+                <div class="greeting-text">
+                    <h1 id="greetingTitle">Greetings,</h1>
+                    <h2 class="employee-name" id="employeeName">Employee Name</h2>
+                    <div class="greeting-line" id="greetingLine"></div>
+                </div>
+                <div class="person-container" id="personContainer">
+                    <img src="character.png" alt="Employee" class="person-illustration">
+                </div>
+            </div>
+            <div class="greeting-right">
+                <img src="DC Studio Logo new end.png" alt="DC Studio Logo" class="greeting-logo" id="greetingLogo">
+            </div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD PAGE -->
+    <div id="dashboardPage" class="page">
+        <div class="dashboard-container">
+            <header class="dashboard-header">
+                <img src="DC Studio Logo new end.png" alt="DC Studio" class="header-logo">
+                <div class="header-right">
+                    <div class="user-profile" id="userProfile">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <button class="logout-btn" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </header>
+            <div class="dashboard-content">
+                <div class="dashboard-left">
+                    <img src="character.png" alt="Employee" class="dashboard-person">
+                </div>
+                <div class="menu-section">
+                    <div class="menu-grid">
+                        <div class="menu-item" id="taskTrackerBtn">
+                            <div class="bookmark"></div>
+                            <div class="menu-icon orange">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <span class="menu-title">Task<br>Tracker</span>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-icon">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                            <span class="menu-title">Project<br>Tracker</span>
+                        </div>
+                        <div class="menu-item" id="reportsBtn">
+                            <div class="menu-icon">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <span class="menu-title">Reports</span>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <span class="menu-title">Team</span>
+                        </div>
+                        <div class="menu-item" id="meetingAlignmentBtn">
+                            <div class="menu-icon">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <span class="menu-title">Meeting<br>Alignment</span>
+                        </div>
+                        <div class="menu-item">
+                            <div class="bookmark"></div>
+                            <div class="menu-icon">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </div>
+                            <span class="menu-title">Leaves</span>
+                        </div>
+                        <div class="menu-item">
+                            <div class="menu-icon">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                            <span class="menu-title">Salary<br>Tracker</span>
+                        </div>
+                        <div class="menu-item" id="calendarBtn">
+                            <div class="menu-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <span class="menu-title">Calendar</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Meeting Alignment Page -->
+    <div id="meetingAlignmentPage" class="page">
+        <div class="meeting-container">
+            <header class="meeting-header">
+                <div class="header-left">
+                    <button class="back-btn" id="backToDashboard">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <img src="DC Studio Logo new end.png" alt="DC Studio" class="header-logo">
+                </div>
+                <h1 class="page-title">Meeting Alignment</h1>
+                <div class="header-right"></div>
+            </header>
+
+            <div class="meeting-content">
+                <!-- Google Connect -->
+                <div class="meeting-connect-bar">
+                    <div class="google-connect-status" id="googleConnectStatus">
+                        <button class="google-btn" id="connectGoogleBtn">
+                            <i class="fab fa-google"></i>
+                            <span>Connect Google</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="meeting-tabs">
+                    <button class="tab-btn active" data-tab="schedule">
+                        <i class="fas fa-plus-circle"></i> Schedule Meeting
+                    </button>
+                    <button class="tab-btn" data-tab="upcoming">
+                        <i class="fas fa-calendar-alt"></i> Upcoming
+                    </button>
+                    <button class="tab-btn" data-tab="past">
+                        <i class="fas fa-history"></i> Past Meetings
+                    </button>
+                </div>
+
+                <!-- Tab Contents -->
+                <div class="tab-content">
+                    <!-- Schedule Meeting Tab -->
+                    <div class="tab-pane active" id="scheduleTab">
+                        <form id="meetingForm" class="meeting-form">
+                            <div class="form-section">
+                                <h3>Meeting Details</h3>
+                                <div class="form-group">
+                                    <label for="meetingTitle">Meeting Title *</label>
+                                    <input type="text" id="meetingTitle" name="title" placeholder="Enter meeting title" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="meetingDescription">Description</label>
+                                    <textarea id="meetingDescription" name="description" placeholder="Enter meeting description (optional)" rows="3"></textarea>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="meetingDate">Date *</label>
+                                        <input type="date" id="meetingDate" name="meeting_date" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="startTime">Start Time *</label>
+                                        <input type="time" id="startTime" name="start_time" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="endTime">End Time *</label>
+                                        <input type="time" id="endTime" name="end_time" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <h3>Participants</h3>
+                                <div class="form-group">
+                                    <label>Add Internal Employees</label>
+                                    <div class="participant-search">
+                                        <input type="text" id="employeeSearch" placeholder="Search employees by name or email..." autocomplete="off">
+                                        <div class="search-results" id="employeeSearchResults"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Add External Participants</label>
+                                    <div class="external-participant-input">
+                                        <input type="text" id="externalName" placeholder="Name">
+                                        <input type="email" id="externalEmail" placeholder="Email">
+                                        <button type="button" id="addExternalBtn" class="add-btn">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="selected-participants" id="selectedParticipants">
+                                    <!-- Selected participants will appear here -->
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <h3>Options</h3>
+                                <div class="form-checkbox">
+                                    <input type="checkbox" id="createGoogleMeet" name="create_google_meet" checked>
+                                    <label for="createGoogleMeet">
+                                        <i class="fab fa-google"></i> Create Google Meet link
+                                    </label>
+                                </div>
+                                <div class="form-checkbox">
+                                    <input type="checkbox" id="sendInvites" name="send_invites" checked>
+                                    <label for="sendInvites">
+                                        <i class="fas fa-envelope"></i> Send email invitations
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="submit-btn">
+                                    <i class="fas fa-calendar-check"></i> Schedule Meeting
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Upcoming Meetings Tab -->
+                    <div class="tab-pane" id="upcomingTab">
+                        <div class="meetings-list" id="upcomingMeetingsList">
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin"></i> Loading meetings...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Past Meetings Tab -->
+                    <div class="tab-pane" id="pastTab">
+                        <div class="meetings-list" id="pastMeetingsList">
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin"></i> Loading meetings...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Meeting Page -->
+    <div id="liveMeetingPage" class="page">
+        <div class="live-meeting-container">
+            <header class="live-meeting-header">
+                <div class="header-left">
+                    <button class="back-btn" id="backToMeetings">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h1 class="meeting-title" id="liveMeetingTitle">Meeting Title</h1>
+                </div>
+                <div class="meeting-timer" id="meetingTimer">
+                    <i class="fas fa-clock"></i>
+                    <span id="timerDisplay">00:00:00</span>
+                </div>
+                <div class="header-right">
+                    <a href="#" class="join-meet-btn" id="joinMeetBtn" target="_blank">
+                        <i class="fas fa-video"></i> Join Meet
+                    </a>
+                    <button class="end-meeting-btn" id="endMeetingBtn">
+                        <i class="fas fa-stop-circle"></i> End Meeting
+                    </button>
+                </div>
+            </header>
+
+            <div class="live-meeting-content">
+                <!-- Left Panel: Transcript -->
+                <div class="transcript-panel">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-microphone"></i> Live Transcript</h3>
+                        <div class="transcript-controls">
+                            <button class="control-btn" id="startTranscriptBtn" title="Start Recording">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button class="control-btn" id="pauseTranscriptBtn" title="Pause Recording" style="display: none;">
+                                <i class="fas fa-pause"></i>
+                            </button>
+                            <span class="recording-indicator" id="recordingIndicator" style="display: none;">
+                                <span class="pulse"></span> Recording
+                            </span>
+                        </div>
+                    </div>
+                    <div class="transcript-content" id="transcriptContent">
+                        <p class="transcript-placeholder">Click the play button to start recording the meeting transcript using your microphone.</p>
+                    </div>
+                    <div class="transcript-actions">
+                        <button class="action-btn" id="saveTranscriptBtn">
+                            <i class="fas fa-save"></i> Save Transcript
+                        </button>
+                        <button class="action-btn" id="clearTranscriptBtn">
+                            <i class="fas fa-eraser"></i> Clear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Annotations -->
+                <div class="annotations-panel">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-sticky-note"></i> Annotations</h3>
+                    </div>
+                    <div class="annotation-filters">
+                        <button class="filter-btn active" data-type="all">All</button>
+                        <button class="filter-btn" data-type="note">Notes</button>
+                        <button class="filter-btn" data-type="action_item">Actions</button>
+                        <button class="filter-btn" data-type="decision">Decisions</button>
+                        <button class="filter-btn" data-type="important">Important</button>
+                    </div>
+                    <div class="annotations-list" id="annotationsList">
+                        <!-- Annotations will be rendered here -->
+                    </div>
+                    <div class="add-annotation">
+                        <select id="annotationType">
+                            <option value="note">Note</option>
+                            <option value="action_item">Action Item</option>
+                            <option value="decision">Decision</option>
+                            <option value="question">Question</option>
+                            <option value="important">Important</option>
+                        </select>
+                        <input type="text" id="annotationText" placeholder="Add a note...">
+                        <button class="add-annotation-btn" id="addAnnotationBtn">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports Page -->
+    <div id="reportsPage" class="page">
+        <div class="reports-container">
+            <header class="reports-header">
+                <div class="header-left">
+                    <button class="back-btn" id="backFromReports">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <img src="DC Studio Logo new end.png" alt="DC Studio" class="header-logo">
+                </div>
+                <h1 class="page-title">Reports</h1>
+                <div class="reports-mobile-select">
+                    <select id="reportsMobileTab">
+                        <option value="site-survey">Site Survey</option>
+                        <option value="quality-checklist">Quality Checklist</option>
+                        <option value="site-progress">Site Progress</option>
+                    </select>
+                </div>
+            </header>
+
+            <div class="reports-body">
+                <!-- Sidebar Navigation -->
+                <nav class="reports-sidebar">
+                    <button class="sidebar-tab active" data-report-tab="site-survey">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Site Survey Report</span>
+                    </button>
+                    <button class="sidebar-tab" data-report-tab="quality-checklist">
+                        <i class="fas fa-clipboard-check"></i>
+                        <span>Quality Checklist</span>
+                    </button>
+                    <button class="sidebar-tab" data-report-tab="site-progress">
+                        <i class="fas fa-hard-hat"></i>
+                        <span>Site Progress Report</span>
+                    </button>
+                </nav>
+
+                <!-- Content Area -->
+                <div class="reports-content">
+                    <!-- Site Survey Panel -->
+                    <div class="report-panel active" id="siteSurveyPanel">
+                        <div class="project-info-form">
+                            <h3><i class="fas fa-info-circle"></i> Project Information</h3>
+                            <div class="project-info-grid">
+                                <div class="form-group">
+                                    <label>Project No.</label>
+                                    <input type="text" id="ss-projectNo" placeholder="Enter project number">
+                                </div>
+                                <div class="form-group">
+                                    <label>Project</label>
+                                    <input type="text" id="ss-project" placeholder="Enter project name">
+                                </div>
+                                <div class="form-group">
+                                    <label>Location</label>
+                                    <input type="text" id="ss-location" placeholder="Enter location">
+                                </div>
+                                <div class="form-group">
+                                    <label>Surveyed By</label>
+                                    <input type="text" id="ss-surveyedBy" placeholder="Enter surveyor name">
+                                </div>
+                                <div class="form-group">
+                                    <label>Date</label>
+                                    <input type="date" id="ss-date">
+                                </div>
+                                <div class="form-group">
+                                    <label>Company</label>
+                                    <input type="text" id="ss-company" placeholder="Enter company name">
+                                </div>
+                                <div class="form-group">
+                                    <label>Designer / Architect</label>
+                                    <input type="text" id="ss-designer" placeholder="Enter designer/architect">
+                                </div>
+                                <div class="form-group">
+                                    <label>Project Manager</label>
+                                    <input type="text" id="ss-pm" placeholder="Enter project manager">
+                                </div>
+                            </div>
+                        </div>
+                        <div id="ss-floor-section"></div>
+                        <div id="ss-wall-section"></div>
+                        <div id="ss-other-section"></div>
+                        <div class="report-actions">
+                            <button class="btn-submit" id="ss-submit-btn"><i class="fas fa-paper-plane"></i> Submit Report</button>
+                            <button class="btn-pdf" id="ss-pdf-btn"><i class="fas fa-file-pdf"></i> Generate PDF</button>
+                            <button class="btn-save-draft" id="ss-draft-btn"><i class="fas fa-save"></i> Save Draft</button>
+                        </div>
+                    </div>
+
+                    <!-- Quality Checklist Panel -->
+                    <div class="report-panel" id="qualityChecklistPanel">
+                        <div class="project-info-form">
+                            <h3><i class="fas fa-info-circle"></i> Project Information</h3>
+                            <div class="project-info-grid">
+                                <div class="form-group">
+                                    <label>Project</label>
+                                    <input type="text" id="qc-project" placeholder="Enter project name">
+                                </div>
+                                <div class="form-group">
+                                    <label>Floor</label>
+                                    <input type="text" id="qc-floor" placeholder="Enter floor">
+                                </div>
+                                <div class="form-group">
+                                    <label>Room</label>
+                                    <input type="text" id="qc-room" placeholder="Enter room/area">
+                                </div>
+                                <div class="form-group">
+                                    <label>DC Representative</label>
+                                    <input type="text" id="qc-representative" placeholder="Enter representative name">
+                                </div>
+                                <div class="form-group">
+                                    <label>Date</label>
+                                    <input type="date" id="qc-date">
+                                </div>
+                            </div>
+                        </div>
+                        <div id="qc-sections-container"></div>
+                        <div class="report-actions">
+                            <button class="btn-submit" id="qc-submit-btn"><i class="fas fa-paper-plane"></i> Submit Report</button>
+                            <button class="btn-pdf" id="qc-pdf-btn"><i class="fas fa-file-pdf"></i> Generate PDF</button>
+                            <button class="btn-save-draft" id="qc-draft-btn"><i class="fas fa-save"></i> Save Draft</button>
+                        </div>
+                    </div>
+
+                    <!-- Site Progress Panel -->
+                    <div class="report-panel" id="siteProgressPanel">
+                        <div class="project-info-form">
+                            <h3><i class="fas fa-info-circle"></i> Project Information</h3>
+                            <div class="project-info-grid">
+                                <div class="form-group">
+                                    <label>Project No.</label>
+                                    <input type="text" id="sp-projectNo" placeholder="Enter project number">
+                                </div>
+                                <div class="form-group">
+                                    <label>Project</label>
+                                    <input type="text" id="sp-project" placeholder="Enter project name">
+                                </div>
+                                <div class="form-group">
+                                    <label>Location</label>
+                                    <input type="text" id="sp-location" placeholder="Enter location">
+                                </div>
+                                <div class="form-group">
+                                    <label>Surveyed By</label>
+                                    <input type="text" id="sp-surveyedBy" placeholder="Enter name">
+                                </div>
+                                <div class="form-group">
+                                    <label>Date</label>
+                                    <input type="date" id="sp-date">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="progress-items-list" id="sp-items-list"></div>
+                        <button class="add-progress-item-btn" id="sp-add-item-btn">
+                            <i class="fas fa-plus"></i> Add Progress Item
+                        </button>
+                        <div class="report-actions">
+                            <button class="btn-submit" id="sp-submit-btn"><i class="fas fa-paper-plane"></i> Submit Report</button>
+                            <button class="btn-pdf" id="sp-pdf-btn"><i class="fas fa-file-pdf"></i> Generate PDF</button>
+                            <button class="btn-save-draft" id="sp-draft-btn"><i class="fas fa-save"></i> Save Draft</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Tracker Page -->
+    <div id="taskTrackerPage" class="page">
+        <div class="tt-container">
+            <header class="tt-header">
+                <div class="header-left">
+                    <button class="back-btn" id="backFromTaskTracker">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <img src="DC Studio Logo new end.png" alt="DC Studio" class="header-logo">
+                </div>
+                <h1 class="page-title">Task Tracker</h1>
+                <div class="header-right">
+                    <button class="tt-add-btn" id="ttAddTaskBtn">
+                        <i class="fas fa-plus"></i> New Task
+                    </button>
+                </div>
+            </header>
+
+            <div class="tt-body">
+                <div class="tt-stats" id="ttStats">
+                    <div class="tt-stat-card tt-stat-total">
+                        <div class="tt-stat-number" id="ttStatTotal">0</div>
+                        <div class="tt-stat-label">Total</div>
+                    </div>
+                    <div class="tt-stat-card tt-stat-todo">
+                        <div class="tt-stat-number" id="ttStatTodo">0</div>
+                        <div class="tt-stat-label">To Do</div>
+                    </div>
+                    <div class="tt-stat-card tt-stat-progress">
+                        <div class="tt-stat-number" id="ttStatProgress">0</div>
+                        <div class="tt-stat-label">In Progress</div>
+                    </div>
+                    <div class="tt-stat-card tt-stat-done">
+                        <div class="tt-stat-number" id="ttStatDone">0</div>
+                        <div class="tt-stat-label">Done</div>
+                    </div>
+                </div>
+
+                <div class="tt-toolbar">
+                    <div class="tt-search-wrap">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="ttSearch" placeholder="Search tasks..." autocomplete="off">
+                    </div>
+                    <div class="tt-filters">
+                        <select id="ttFilterStatus">
+                            <option value="">All Status</option>
+                            <option value="to-do">To Do</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="done">Done</option>
+                        </select>
+                        <select id="ttFilterPriority">
+                            <option value="">All Priority</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                        <select id="ttFilterAssignee">
+                            <option value="">All Assignees</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="tt-table-wrap">
+                    <table class="tt-table" id="ttTable">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Assignee</th>
+                                <th>Due Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ttTableBody">
+                        </tbody>
+                    </table>
+                    <div class="tt-empty" id="ttEmpty" style="display:none;">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h3>No tasks yet</h3>
+                        <p>Click "New Task" to create your first task.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Page -->
+    <div id="calendarPage" class="page">
+        <div class="cal-container">
+            <header class="cal-header">
+                <div class="header-left">
+                    <button class="back-btn" id="backFromCalendar">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <img src="DC Studio Logo new end.png" alt="DC Studio" class="header-logo">
+                </div>
+                <h1 class="page-title">Calendar</h1>
+                <div class="header-right">
+                    <div class="cal-google-status" id="calGoogleStatus">
+                        <button class="google-btn" id="calConnectGoogleBtn">
+                            <i class="fab fa-google"></i>
+                            <span>Connect Google</span>
+                        </button>
+                    </div>
+                    <button class="cal-quick-add-btn" id="calQuickAddBtn">
+                        <i class="fas fa-plus"></i> Quick Add
+                    </button>
+                </div>
+            </header>
+
+            <div class="cal-body">
+                <div class="cal-connect-banner" id="calConnectBanner">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Connect Google Calendar to see your events</span>
+                    <button class="cal-banner-connect-btn" id="calBannerConnectBtn">Connect</button>
+                </div>
+
+                <div class="cal-toolbar">
+                    <button class="cal-nav-btn" id="calPrevMonth">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <h2 class="cal-month-label" id="calMonthLabel">February 2026</h2>
+                    <button class="cal-nav-btn" id="calNextMonth">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <button class="cal-today-btn" id="calTodayBtn">Today</button>
+                    <div class="cal-legend">
+                        <span class="cal-legend-item"><span class="cal-dot cal-dot-google"></span>Google</span>
+                        <span class="cal-legend-item"><span class="cal-dot cal-dot-meeting"></span>Meeting</span>
+                        <span class="cal-legend-item"><span class="cal-dot cal-dot-task"></span>Task</span>
+                    </div>
+                </div>
+
+                <div class="cal-grid" id="calGrid">
+                    <!-- Day headers and cells rendered by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Quick Add Event Modal -->
+    <div class="cal-modal-overlay" id="calEventModal">
+        <div class="cal-modal">
+            <div class="cal-modal-header">
+                <h3>Add Event</h3>
+                <button class="cal-modal-close" id="calEventModalClose">&times;</button>
+            </div>
+            <form id="calEventForm">
+                <div class="cal-modal-body">
+                    <div class="cal-form-group">
+                        <label for="calEventTitle">Title *</label>
+                        <input type="text" id="calEventTitle" placeholder="Event title" required>
+                    </div>
+                    <div class="cal-form-group">
+                        <label for="calEventDate">Date *</label>
+                        <input type="date" id="calEventDate" required>
+                    </div>
+                    <div class="cal-form-row">
+                        <div class="cal-form-group">
+                            <label for="calEventStart">Start Time *</label>
+                            <input type="time" id="calEventStart" required>
+                        </div>
+                        <div class="cal-form-group">
+                            <label for="calEventEnd">End Time *</label>
+                            <input type="time" id="calEventEnd" required>
+                        </div>
+                    </div>
+                    <div class="cal-form-group">
+                        <label for="calEventDesc">Description</label>
+                        <textarea id="calEventDesc" placeholder="Optional description" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="cal-modal-footer">
+                    <button type="button" class="cal-btn-cancel" id="calEventCancel">Cancel</button>
+                    <button type="submit" class="cal-btn-save">Create Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Calendar Event Detail Modal -->
+    <div class="cal-modal-overlay" id="calDetailModal">
+        <div class="cal-modal cal-modal-sm">
+            <div class="cal-modal-header">
+                <h3 id="calDetailTitle">Event Details</h3>
+                <button class="cal-modal-close" id="calDetailModalClose">&times;</button>
+            </div>
+            <div class="cal-modal-body" id="calDetailBody">
+                <!-- Populated by JS -->
+            </div>
+            <div class="cal-modal-footer" id="calDetailFooter">
+                <button class="cal-btn-cancel" id="calDetailClose">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Tracker Add/Edit Modal -->
+    <div class="tt-modal-overlay" id="ttTaskModal">
+        <div class="tt-modal">
+            <div class="tt-modal-header">
+                <h3 id="ttModalTitle">Add Task</h3>
+                <button class="tt-modal-close" id="ttModalClose">&times;</button>
+            </div>
+            <form id="ttTaskForm">
+                <div class="tt-modal-body">
+                    <input type="hidden" id="ttTaskId">
+                    <div class="tt-form-group">
+                        <label for="ttTaskTitle">Title *</label>
+                        <input type="text" id="ttTaskTitle" placeholder="Enter task title" required>
+                    </div>
+                    <div class="tt-form-group">
+                        <label for="ttTaskDesc">Description</label>
+                        <textarea id="ttTaskDesc" placeholder="Enter description (optional)" rows="3"></textarea>
+                    </div>
+                    <div class="tt-form-row">
+                        <div class="tt-form-group">
+                            <label for="ttTaskPriority">Priority</label>
+                            <select id="ttTaskPriority">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        <div class="tt-form-group">
+                            <label for="ttTaskStatus">Status</label>
+                            <select id="ttTaskStatus">
+                                <option value="to-do">To Do</option>
+                                <option value="in-progress">In Progress</option>
+                                <option value="done">Done</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="tt-form-row">
+                        <div class="tt-form-group">
+                            <label for="ttTaskDue">Due Date</label>
+                            <input type="date" id="ttTaskDue">
+                        </div>
+                        <div class="tt-form-group">
+                            <label for="ttTaskAssignee">Assignee</label>
+                            <select id="ttTaskAssignee">
+                                <option value="">Unassigned</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="tt-modal-footer">
+                    <button type="button" class="tt-btn-cancel" id="ttModalCancel">Cancel</button>
+                    <button type="submit" class="tt-btn-save">Save Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Task Tracker Delete Modal -->
+    <div class="tt-modal-overlay" id="ttDeleteModal">
+        <div class="tt-modal tt-modal-sm">
+            <div class="tt-modal-header">
+                <h3>Delete Task</h3>
+                <button class="tt-modal-close" id="ttDeleteClose">&times;</button>
+            </div>
+            <div class="tt-modal-body">
+                <p>Are you sure you want to delete "<strong id="ttDeleteName"></strong>"?</p>
+                <p class="tt-delete-warning">This action cannot be undone.</p>
+            </div>
+            <div class="tt-modal-footer">
+                <button class="tt-btn-cancel" id="ttDeleteCancel">Cancel</button>
+                <button class="tt-btn-delete" id="ttDeleteConfirm">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orientation Selector Modal -->
+    <div class="orientation-modal-overlay" id="orientationModal">
+        <div class="orientation-modal">
+            <div class="orientation-modal-header">
+                <h3>Select Photo Orientation</h3>
+                <p>Choose how you want to capture the photo</p>
+                <button class="close-btn" id="closeOrientationModal">&times;</button>
+            </div>
+            <div class="orientation-options">
+                <button class="orientation-option" id="orientPortraitBtn">
+                    <div class="orientation-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <div class="orientation-info">
+                        <h4>Portrait</h4>
+                        <span>Vertical (9:16)</span>
+                        <small>Best for tall subjects, documents</small>
+                    </div>
+                </button>
+                <button class="orientation-option" id="orientLandscapeBtn">
+                    <div class="orientation-icon landscape">
+                        <i class="fas fa-desktop"></i>
+                    </div>
+                    <div class="orientation-info">
+                        <h4>Landscape</h4>
+                        <span>Horizontal (16:9)</span>
+                        <small>Best for wide views, rooms, panoramas</small>
+                    </div>
+                </button>
+            </div>
+            <div class="orientation-footer">
+                <button class="cancel-btn" id="cancelOrientationBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera Modal -->
+    <div class="camera-modal-overlay" id="cameraModal">
+        <div class="camera-modal">
+            <div class="camera-modal-header">
+                <h3>Take Photo</h3>
+                <button class="close-btn" id="closeCameraModal">&times;</button>
+            </div>
+            <div class="camera-modal-body">
+                <div class="camera-video-container" id="cameraVideoContainer">
+                    <video id="cameraVideo" autoplay playsinline></video>
+                    <canvas id="cameraCanvas"></canvas>
+                </div>
+                <div class="camera-preview" id="cameraPreview">
+                    <img id="cameraPreviewImg" alt="Preview">
+                </div>
+                <div class="camera-controls" id="cameraControlsLive">
+                    <button class="switch-camera-btn" id="switchCameraBtn"><i class="fas fa-sync-alt"></i></button>
+                    <button class="capture-btn" id="captureBtn"></button>
+                </div>
+                <div class="camera-controls rpt-hidden" id="cameraControlsPreview">
+                    <button class="retake-btn" id="retakeBtn">Retake</button>
+                    <button class="use-photo-btn" id="usePhotoBtn">Use Photo</button>
+                    <button class="annotate-photo-btn" id="annotatePhotoBtn"><i class="fas fa-pen-fancy"></i> Annotate</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Annotation Modal -->
+    <div class="annotation-modal-overlay" id="annotationModal">
+        <div class="annotation-modal">
+            <div class="camera-modal-header">
+                <h3>Annotate Image</h3>
+                <button class="close-btn" id="closeAnnotationModal">&times;</button>
+            </div>
+            <div class="annotation-toolbar">
+                <button class="tool-btn active" data-tool="pen" title="Pen"><i class="fas fa-pen"></i></button>
+                <button class="tool-btn" data-tool="eraser" title="Eraser"><i class="fas fa-eraser"></i></button>
+                <button class="tool-btn" data-tool="line" title="Line"><i class="fas fa-minus"></i></button>
+                <button class="tool-btn" data-tool="rect" title="Rectangle"><i class="far fa-square"></i></button>
+                <button class="tool-btn" data-tool="circle" title="Circle"><i class="far fa-circle"></i></button>
+                <button class="tool-btn" data-tool="arrow" title="Arrow"><i class="fas fa-long-arrow-alt-right"></i></button>
+                <button class="tool-btn" data-tool="text" title="Text"><i class="fas fa-font"></i></button>
+                <span class="toolbar-divider"></span>
+                <div class="color-palette" id="colorPalette">
+                    <button class="color-swatch active" data-color="#FF0000" style="background:#FF0000" title="Red"></button>
+                    <button class="color-swatch" data-color="#0000FF" style="background:#0000FF" title="Blue"></button>
+                    <button class="color-swatch" data-color="#00FF00" style="background:#00FF00" title="Green"></button>
+                    <button class="color-swatch" data-color="#FFFF00" style="background:#FFFF00" title="Yellow"></button>
+                    <button class="color-swatch" data-color="#FFA500" style="background:#FFA500" title="Orange"></button>
+                    <button class="color-swatch" data-color="#800080" style="background:#800080" title="Purple"></button>
+                    <button class="color-swatch" data-color="#FFFFFF" style="background:#FFFFFF" title="White"></button>
+                    <button class="color-swatch" data-color="#000000" style="background:#000000" title="Black"></button>
+                </div>
+                <input type="color" class="color-pick" id="annotationColor" value="#ff0000" title="Custom Color">
+                <span class="toolbar-divider"></span>
+                <input type="range" class="size-slider" id="annotationSize" min="1" max="20" value="3" title="Size">
+                <span class="size-label" id="sizeLabel">3px</span>
+                <span class="toolbar-divider"></span>
+                <button class="tool-btn" data-tool="undo" title="Undo"><i class="fas fa-undo"></i></button>
+                <button class="tool-btn" data-tool="redo" title="Redo"><i class="fas fa-redo"></i></button>
+                <button class="tool-btn danger" data-tool="clear" title="Clear All"><i class="fas fa-trash-alt"></i></button>
+            </div>
+            <div class="annotation-canvas-wrap">
+                <canvas id="annotationCanvas"></canvas>
+            </div>
+            <div class="annotation-actions">
+                <button class="cancel-btn" id="cancelAnnotation">Cancel</button>
+                <button class="save-btn" id="saveAnnotation">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="reportToast" class="report-toast"></div>
+
+    <!-- Meeting Details Modal -->
+    <div class="modal" id="meetingDetailsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalMeetingTitle">Meeting Details</h2>
+                <button class="modal-close" id="closeModalBtn">&times;</button>
+            </div>
+            <div class="modal-body" id="modalMeetingBody">
+                <!-- Meeting details will be loaded here -->
+            </div>
+            <div class="modal-footer" id="modalMeetingFooter">
+                <!-- Action buttons will be added here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="script.js"></script>
+    <script src="js/meeting-alignment.js"></script>
+    <script src="js/reports-data.js"></script>
+    <script src="js/reports.js"></script>
+    <script src="js/task-tracker.js"></script>
+    <script src="js/calendar.js"></script>
+</body>
+</html>
