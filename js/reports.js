@@ -25,6 +25,7 @@ var DCReports = (function () {
     var eraserPattern = null;     // cached original image pattern for eraser
     var progressCounter = 0;
     var facingMode = 'environment';
+    var pdfLogoDataUrl = null;      // pre-loaded DC Studio logo for PDF
 
     // IndexedDB
     var DB_NAME = 'dc-studio-reports';
@@ -42,6 +43,7 @@ var DCReports = (function () {
             addProgressItem();  // start with one item
             bindEvents();
             setTodayDates();
+            loadPdfLogo();
             console.log('DCReports initialized');
         });
     }
@@ -1037,186 +1039,369 @@ var DCReports = (function () {
         });
     }
 
+    // ── PDF Logo Pre-loader ────────────────────────────────
+    function loadPdfLogo() {
+        var img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function () {
+            // Resize to max 280×200 px to keep the data URL small
+            var maxW = 280, maxH = 200;
+            var w = img.naturalWidth || img.width;
+            var h = img.naturalHeight || img.height;
+            if (w > maxW || h > maxH) {
+                var ratio = Math.min(maxW / w, maxH / h);
+                w = Math.round(w * ratio);
+                h = Math.round(h * ratio);
+            }
+            var cnv = document.createElement('canvas');
+            cnv.width = w;
+            cnv.height = h;
+            cnv.getContext('2d').drawImage(img, 0, 0, w, h);
+            pdfLogoDataUrl = cnv.toDataURL('image/png');
+        };
+        img.onerror = function () { pdfLogoDataUrl = null; };
+        img.src = '/DC%20Studio%20Logo%20new%20end.png';
+    }
+
     // ── PDF Generation ─────────────────────────────────────
+    var PDF_C = {
+        bg:     [248, 248, 248],
+        dark:   [55,  55,  55 ],
+        mid:    [115, 115, 115],
+        light:  [210, 210, 210],
+        imgBg:  [215, 215, 215],
+        dash:   [188, 188, 188],
+        accent: [210, 50,  30 ]
+    };
+
     function generatePDF(type) {
         if (typeof window.jspdf === 'undefined') {
             showToast('PDF library not loaded. Please check your internet connection.', 'error');
             return;
         }
-
+        showToast('Generating PDF...', 'info');
         var jsPDF = window.jspdf.jsPDF;
         var doc = new jsPDF('p', 'mm', 'a4');
-        var y = 20;
-        var pageWidth = 210;
-        var margin = 15;
-        var contentWidth = pageWidth - margin * 2;
-
-        // Header
-        doc.setFillColor(235, 120, 70);
-        doc.rect(0, 0, pageWidth, 30, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(18);
-        doc.setFont('helvetica', 'bold');
-
-        var title = type === 'site-survey' ? 'Site Survey Report' :
-                    type === 'quality-checklist' ? 'Quality Checklist Report' :
-                    'Site Progress Report';
-        doc.text(title, margin, 20);
-        doc.setFontSize(9);
-        doc.text('DC Studio', pageWidth - margin, 20, { align: 'right' });
-
-        y = 40;
-        doc.setTextColor(0, 0, 0);
-        doc.setFontSize(10);
-
-        // Project Info
-        var prefix = type === 'site-survey' ? 'ss' : type === 'quality-checklist' ? 'qc' : 'sp';
-        var info = collectProjectInfo(prefix);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Project Information', margin, y);
-        y += 7;
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9);
-
-        Object.keys(info).forEach(function (key) {
-            if (info[key]) {
-                var label = key.replace(/([A-Z])/g, ' $1').replace(/^./, function (s) { return s.toUpperCase(); });
-                doc.text(label + ': ' + info[key], margin, y);
-                y += 5;
-                if (y > 270) { doc.addPage(); y = 20; }
-            }
-        });
-
-        y += 5;
-
         if (type === 'site-survey') {
-            addSiteSurveyToPDF(doc, y, margin, contentWidth);
+            buildSiteSurveyPDF(doc);
         } else if (type === 'quality-checklist') {
-            addQualityToPDF(doc, y, margin, contentWidth);
+            buildQualityChecklistPDF(doc);
         } else {
-            addProgressToPDF(doc, y, margin, contentWidth);
+            buildSiteProgressPDF(doc);
         }
-
-        doc.save(title.replace(/ /g, '_') + '_' + new Date().toISOString().split('T')[0] + '.pdf');
+        var names = {
+            'site-survey':        'Site_Survey_Report',
+            'quality-checklist':  'Quality_Checklist_Report',
+            'site-progress':      'Site_Progress_Report'
+        };
+        doc.save((names[type] || 'Report') + '_' + new Date().toISOString().split('T')[0] + '.pdf');
         showToast('PDF downloaded!', 'success');
     }
 
-    function addSiteSurveyToPDF(doc, y, margin, contentWidth) {
-        var sections = [
-            { title: 'A. Floor', items: SITE_SURVEY_FLOOR_ITEMS },
-            { title: 'B. Wall', items: SITE_SURVEY_WALL_ITEMS },
-            { title: 'C. Other', items: SITE_SURVEY_OTHER_ITEMS }
-        ];
+    // ── PDF Primitives ─────────────────────────────────────
+    function pdfBg(doc) {
+        doc.setFillColor(PDF_C.bg[0], PDF_C.bg[1], PDF_C.bg[2]);
+        doc.rect(0, 0, 210, 297, 'F');
+    }
 
-        sections.forEach(function (section) {
+    function pdfLogo(doc) {
+        // Logo dimensions and position (top-right corner)
+        var lw = 30, lh = 21;
+        var lx = 198 - lw, ly = 5;
+
+        if (pdfLogoDataUrl) {
+            try {
+                doc.addImage(pdfLogoDataUrl, 'PNG', lx, ly, lw, lh);
+                return;
+            } catch (e) { /* fall through to vector fallback */ }
+        }
+
+        // Vector fallback: draw D + slash + C + "studio" to match logo style
+        var ox = lx + 3, oy = ly + 3;
+        // "D"
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(20);
+        doc.setTextColor(PDF_C.dark[0], PDF_C.dark[1], PDF_C.dark[2]);
+        doc.text('D', ox, oy + 11);
+        // "C"
+        doc.text('C', ox + 12, oy + 11);
+        // Orange forward slash between D and C
+        doc.setDrawColor(PDF_C.accent[0], PDF_C.accent[1], PDF_C.accent[2]);
+        doc.setLineWidth(1.4);
+        doc.line(ox + 10, oy + 14, ox + 16, oy + 1);
+        // "studio" small text
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(5.5);
+        doc.setTextColor(PDF_C.dark[0], PDF_C.dark[1], PDF_C.dark[2]);
+        doc.text('studio', ox + 9, oy + 17, { align: 'center' });
+        // Reset stroke
+        doc.setDrawColor(PDF_C.dark[0], PDF_C.dark[1], PDF_C.dark[2]);
+        doc.setLineWidth(0.3);
+    }
+
+    function pdfAddPg(doc) {
+        doc.addPage();
+        pdfBg(doc);
+        pdfLogo(doc);
+        return 30;  // start below logo (logo occupies y≈5–26)
+    }
+
+    function pdfChk(doc, y, need) {
+        return (y + need > 280) ? pdfAddPg(doc) : y;
+    }
+
+    // ── Cover Page ─────────────────────────────────────────
+    // infoGroups: array of string arrays (each group separated by a gap)
+    function pdfCover(doc, titleText, infoGroups) {
+        pdfBg(doc);
+        pdfLogo(doc);
+
+        // Large title — placed below logo (logo ends at ~y=26)
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(36);
+        doc.setTextColor(PDF_C.dark[0], PDF_C.dark[1], PDF_C.dark[2]);
+        doc.text(titleText, 14, 30);
+
+        // "About Project" heading (right-aligned)
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(20);
+        doc.setTextColor(PDF_C.dark[0], PDF_C.dark[1], PDF_C.dark[2]);
+        doc.text('About Project', 196, 48, { align: 'right' });
+
+        // Project info lines (right-aligned, bold)
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        var iy = 58;
+        infoGroups.forEach(function (grp, gi) {
+            grp.forEach(function (line) {
+                if (line) { doc.text(line, 196, iy, { align: 'right' }); iy += 5; }
+            });
+            if (gi < infoGroups.length - 1) iy += 3;
+        });
+
+        return 110; // y position where sections begin
+    }
+
+    // ── Section Header ─────────────────────────────────────
+    // letter: single char (A/B/C) or short string; title: section name
+    function pdfSectionHead(doc, letter, title, y) {
+        y = pdfChk(doc, y, 26);
+        var fsz = letter.length === 1 ? 42 : 30;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(fsz);
+        doc.setTextColor(PDF_C.dark[0], PDF_C.dark[1], PDF_C.dark[2]);
+        doc.text(letter, 12, y + 9);
+
+        // Pill background behind title
+        var px = 32, pw = Math.max(60, title.length * 3.4 + 20), ph = 12;
+        doc.setFillColor(PDF_C.light[0], PDF_C.light[1], PDF_C.light[2]);
+        doc.roundedRect(px, y - 1, pw, ph, 2.5, 2.5, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(PDF_C.dark[0], PDF_C.dark[1], PDF_C.dark[2]);
+        doc.text(title, px + 7, y + 7.5);
+
+        // Full-width horizontal rule
+        var lineY = y + 14;
+        doc.setDrawColor(PDF_C.light[0], PDF_C.light[1], PDF_C.light[2]);
+        doc.setLineWidth(0.5);
+        doc.line(12, lineY, 198, lineY);
+        return lineY + 7;
+    }
+
+    // ── Subsection Label ───────────────────────────────────
+    function pdfSubHead(doc, text, y) {
+        y = pdfChk(doc, y, 12);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.setTextColor(PDF_C.mid[0], PDF_C.mid[1], PDF_C.mid[2]);
+        doc.text(text.toUpperCase(), 30, y);
+        doc.setTextColor(PDF_C.dark[0], PDF_C.dark[1], PDF_C.dark[2]);
+        return y + 7;
+    }
+
+    // ── Item Row ───────────────────────────────────────────
+    // Two-column: left = number + label + value text, right = photo or placeholder
+    function pdfItemRow(doc, numStr, label, valueLines, images, y) {
+        y = pdfChk(doc, y, 66);
+
+        var imgX = 118, imgW = 78, imgH = 52, imgY = y;
+
+        // Large item number
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(20);
+        doc.setTextColor(PDF_C.dark[0], PDF_C.dark[1], PDF_C.dark[2]);
+        doc.text(numStr, 12, y + 8);
+
+        // Item label (bold, wrapping)
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9.5);
+        var lblLines = doc.splitTextToSize(label, 84);
+        var ty = y + 5;
+        lblLines.forEach(function (l) { doc.text(l, 30, ty); ty += 4.5; });
+        ty += 1.5;
+
+        // Value / data lines (normal, muted)
+        if (valueLines.length > 0) {
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+            doc.setTextColor(PDF_C.mid[0], PDF_C.mid[1], PDF_C.mid[2]);
+            valueLines.forEach(function (l) { doc.text(l, 30, ty); ty += 4.5; });
+            doc.setTextColor(PDF_C.dark[0], PDF_C.dark[1], PDF_C.dark[2]);
+        }
+
+        // Photo or placeholder
+        var imgDrawn = false;
+        if (images && images.length > 0) {
+            try {
+                doc.addImage(images[0].dataUrl, 'JPEG', imgX, imgY, imgW, imgH);
+                imgDrawn = true;
+            } catch (e) { /* fall through */ }
+        }
+        if (!imgDrawn) {
+            doc.setFillColor(PDF_C.imgBg[0], PDF_C.imgBg[1], PDF_C.imgBg[2]);
+            doc.roundedRect(imgX, imgY, imgW, imgH, 4, 4, 'F');
             doc.setFont('helvetica', 'bold');
-            doc.setFontSize(11);
-            doc.text(section.title, margin, y);
-            y += 7;
+            doc.setFontSize(8);
+            doc.setTextColor(PDF_C.dark[0], PDF_C.dark[1], PDF_C.dark[2]);
+            doc.text('Project Image', imgX + imgW / 2, imgY + imgH / 2 + 2, { align: 'center' });
+        }
 
-            section.items.forEach(function (item, idx) {
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(9);
-                var text = (idx + 1) + '. ' + item.label;
-                var lines = doc.splitTextToSize(text, contentWidth);
-                lines.forEach(function (line) {
-                    if (y > 275) { doc.addPage(); y = 20; }
-                    doc.text(line, margin, y);
-                    y += 4.5;
-                });
+        // Dashed separator below left column
+        var sepY = Math.max(ty + 4, imgY + imgH + 6);
+        if (doc.setLineDashPattern) { doc.setLineDashPattern([1.5, 2.5], 0); }
+        doc.setDrawColor(PDF_C.dash[0], PDF_C.dash[1], PDF_C.dash[2]);
+        doc.setLineWidth(0.3);
+        doc.line(12, sepY, 113, sepY);
+        if (doc.setLineDashPattern) { doc.setLineDashPattern([], 0); }
 
-                // Get field value
+        return sepY + 8;
+    }
+
+    // ── Site Survey PDF ────────────────────────────────────
+    function buildSiteSurveyPDF(doc) {
+        var info = collectProjectInfo('ss');
+        var grps = [
+            [info.projectNo, info.project, info.location].filter(Boolean),
+            [
+                info.surveyedBy ? 'Surveyed By - ' + info.surveyedBy : null,
+                info.date,
+                info.company,
+                info.designer ? 'Designer/Architect - ' + info.designer : null,
+                info.pm ? 'Project Manager - ' + info.pm : null
+            ].filter(Boolean)
+        ];
+        var y = pdfCover(doc, 'Site Survey', grps);
+
+        [
+            { letter: 'A', title: 'Floor Item',  items: SITE_SURVEY_FLOOR_ITEMS },
+            { letter: 'B', title: 'Wall Item',   items: SITE_SURVEY_WALL_ITEMS  },
+            { letter: 'C', title: 'Other Item',  items: SITE_SURVEY_OTHER_ITEMS }
+        ].forEach(function (sec) {
+            y = pdfChk(doc, y, 30);
+            y = pdfSectionHead(doc, sec.letter, sec.title, y);
+
+            sec.items.forEach(function (item, idx) {
+                var num = (idx + 1 < 10 ? '0' : '') + (idx + 1);
+                var vals = [];
+
+                // Textarea / text input value
                 var el = document.querySelector('[data-field-id="' + item.id + '"]');
                 if (el && el.value) {
-                    doc.setTextColor(50, 50, 150);
-                    var valLines = doc.splitTextToSize('   → ' + el.value, contentWidth - 10);
-                    valLines.forEach(function (vl) {
-                        if (y > 275) { doc.addPage(); y = 20; }
-                        doc.text(vl, margin + 5, y);
-                        y += 4.5;
-                    });
-                    doc.setTextColor(0, 0, 0);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(8);
+                    vals = vals.concat(doc.splitTextToSize(el.value, 84));
                 }
 
-                // Multiple fields
+                // Structured sub-fields
                 if (item.fields) {
                     item.fields.forEach(function (f) {
                         var fEl = document.querySelector('[data-field-id="' + f.id + '"]');
-                        if (fEl && fEl.value) {
-                            doc.setTextColor(50, 50, 150);
-                            if (y > 275) { doc.addPage(); y = 20; }
-                            doc.text('   ' + f.label + ': ' + fEl.value, margin + 5, y);
-                            y += 4.5;
-                            doc.setTextColor(0, 0, 0);
-                        }
+                        if (fEl && fEl.value) vals.push(f.label + ': ' + fEl.value);
                     });
+                    // Extra dynamically-added rows
+                    var cont = document.getElementById('fields-' + item.id);
+                    if (cont) {
+                        cont.querySelectorAll('[data-field-id]').forEach(function (xEl) {
+                            var fid = xEl.getAttribute('data-field-id');
+                            var isOrig = item.fields.some(function (f) { return f.id === fid; });
+                            if (!isOrig && xEl.value) vals.push(xEl.value);
+                        });
+                    }
                 }
 
-                y += 2;
+                y = pdfItemRow(doc, num, item.label, vals, mediaMap[item.id] || [], y);
             });
             y += 5;
         });
     }
 
-    function addQualityToPDF(doc, y, margin, contentWidth) {
-        QUALITY_CHECKLIST_SECTIONS.forEach(function (section, sIdx) {
-            if (y > 260) { doc.addPage(); y = 20; }
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(11);
-            doc.text((sIdx + 1) + '. ' + section.name, margin, y);
-            y += 7;
+    // ── Quality Checklist PDF ──────────────────────────────
+    function buildQualityChecklistPDF(doc) {
+        var info = collectProjectInfo('qc');
+        var grps = [
+            [info.project,
+             info.floor ? 'Floor: ' + info.floor : null,
+             info.room  ? 'Room: '  + info.room  : null].filter(Boolean),
+            [info.representative ? 'DC Rep: ' + info.representative : null,
+             info.date].filter(Boolean)
+        ];
+        var y = pdfCover(doc, 'Quality Checklist', grps);
 
-            section.subsections.forEach(function (sub) {
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(9);
-                if (y > 270) { doc.addPage(); y = 20; }
-                doc.text(sub.name, margin + 3, y);
-                y += 5;
+        QUALITY_CHECKLIST_SECTIONS.forEach(function (sec, si) {
+            var letter = String(si + 1);
+            y = pdfChk(doc, y, 30);
+            y = pdfSectionHead(doc, letter, sec.name, y);
 
-                sub.items.forEach(function (item, iIdx) {
-                    doc.setFont('helvetica', 'normal');
-                    doc.setFontSize(8);
-                    var text = (iIdx + 1) + '. ' + item.label;
-                    var lines = doc.splitTextToSize(text, contentWidth - 20);
-                    lines.forEach(function (line) {
-                        if (y > 275) { doc.addPage(); y = 20; }
-                        doc.text(line, margin + 6, y);
-                        y += 4;
-                    });
+            sec.subsections.forEach(function (sub) {
+                if (!sub.items.length) return;
+                y = pdfSubHead(doc, sub.name, y);
 
-                    // Get percentage and remarks
+                sub.items.forEach(function (item, ii) {
+                    var num = (ii + 1 < 10 ? '0' : '') + (ii + 1);
                     var pctEl = document.querySelector('[data-field-id="' + item.id + '-pct"]');
                     var remEl = document.querySelector('[data-field-id="' + item.id + '-remarks"]');
                     var pct = pctEl ? pctEl.value : '';
                     var rem = remEl ? remEl.value : '';
+                    var vals = [];
                     if (pct || rem) {
-                        doc.setTextColor(50, 50, 150);
-                        if (y > 275) { doc.addPage(); y = 20; }
-                        doc.text('   ' + (pct ? pct + '%' : '') + (rem ? ' - ' + rem : ''), margin + 10, y);
-                        y += 4;
-                        doc.setTextColor(0, 0, 0);
+                        var combined = (pct ? pct + '%' : '') + (pct && rem ? ' \u2014 ' : '') + (rem || '');
+                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(8);
+                        vals = doc.splitTextToSize(combined, 84);
                     }
-                    y += 1;
+                    y = pdfItemRow(doc, num, item.label, vals, mediaMap[item.id] || [], y);
                 });
-                y += 3;
             });
-            y += 3;
+            y += 5;
         });
     }
 
-    function addProgressToPDF(doc, y, margin, contentWidth) {
-        var items = collectProgressItems();
-        items.forEach(function (item, idx) {
-            if (y > 260) { doc.addPage(); y = 20; }
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(10);
-            doc.text('Item #' + (idx + 1), margin, y);
-            y += 6;
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(9);
-            doc.text('Description: ' + (item.description || 'N/A'), margin + 3, y); y += 5;
-            doc.text('Floor/Area: ' + (item.floorArea || 'N/A'), margin + 3, y); y += 5;
-            doc.text('Location: ' + (item.location || 'N/A'), margin + 3, y); y += 7;
+    // ── Site Progress PDF ──────────────────────────────────
+    function buildSiteProgressPDF(doc) {
+        var info = collectProjectInfo('sp');
+        var grps = [
+            [info.projectNo, info.project, info.location].filter(Boolean),
+            [info.date,
+             info.company,
+             info.pm ? 'Project Manager - ' + info.pm : null].filter(Boolean)
+        ];
+        var y = pdfCover(doc, 'Site Progress Report', grps);
+
+        y = pdfChk(doc, y, 30);
+        y = pdfSectionHead(doc, 'P', 'Progress Items', y);
+
+        collectProgressItems().forEach(function (item, idx) {
+            var num = (idx + 1 < 10 ? '0' : '') + (idx + 1);
+            var vals = [];
+            if (item.description) {
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8);
+                vals = vals.concat(doc.splitTextToSize(item.description, 84));
+            }
+            if (item.floorArea) vals.push('Floor/Area: ' + item.floorArea);
+            if (item.location)  vals.push('Location: '   + item.location);
+            y = pdfItemRow(doc, num, 'Progress Item ' + (idx + 1), vals, item.images || [], y);
         });
     }
 

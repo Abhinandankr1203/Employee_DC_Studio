@@ -4,9 +4,13 @@ vendor/
 
 # Sensitive credentials - DO NOT COMMIT
 credentials.json
+token.json
 .env
 .env.local
 .env.*.local
+
+# Local tool settings
+.claude/
 
 # OS files
 .DS_Store
