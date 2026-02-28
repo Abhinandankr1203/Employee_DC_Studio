@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="css/reports.css">
     <link rel="stylesheet" href="css/task-tracker.css">
     <link rel="stylesheet" href="css/calendar.css">
+    <link rel="stylesheet" href="css/leaves.css">
+    <link rel="stylesheet" href="css/salary.css">
     <style>
         /* Additional inline styles for animations */
 
@@ -238,14 +240,14 @@
                             </div>
                             <span class="menu-title">Meeting<br>Alignment</span>
                         </div>
-                        <div class="menu-item">
+                        <div class="menu-item" id="leavesBtn">
                             <div class="bookmark"></div>
                             <div class="menu-icon">
-                                <i class="fas fa-sign-out-alt"></i>
+                                <i class="fas fa-calendar-minus"></i>
                             </div>
                             <span class="menu-title">Leaves</span>
                         </div>
-                        <div class="menu-item">
+                        <div class="menu-item" id="salaryBtn">
                             <div class="menu-icon">
                                 <i class="fas fa-wallet"></i>
                             </div>
@@ -741,6 +743,242 @@
         </div>
     </div>
 
+    <!-- Salary Tracker Page -->
+    <div id="salaryPage" class="page">
+        <div class="sal-container">
+            <header class="sal-header">
+                <div class="header-left">
+                    <button class="back-btn" id="backFromSalary">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <img src="DC Studio Logo new end.png" alt="DC Studio" class="header-logo">
+                </div>
+                <h1 class="page-title">Salary Tracker</h1>
+                <div class="header-right"></div>
+            </header>
+
+            <!-- Tabs -->
+            <div class="sal-tabs-bar">
+                <button class="sal-tab active" data-tab="payslips">
+                    <i class="fas fa-file-invoice-dollar"></i> My Payslips
+                </button>
+                <button class="sal-tab" data-tab="reimbursement">
+                    <i class="fas fa-receipt"></i> Bill Reimbursement
+                </button>
+            </div>
+
+            <div class="sal-body">
+
+                <!-- ===== MY PAYSLIPS TAB ===== -->
+                <div class="sal-tab-pane active" id="salPayslipsPane">
+                    <div class="sal-section">
+                        <h2 class="sal-section-title"><i class="fas fa-file-invoice-dollar"></i> My Payslips</h2>
+                        <div class="sal-table-wrap">
+                            <table class="sal-table">
+                                <thead>
+                                    <tr>
+                                        <th>Period</th>
+                                        <th>Gross Salary</th>
+                                        <th>Total Deductions</th>
+                                        <th>Net Pay</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="salPayslipsBody"></tbody>
+                            </table>
+                            <div class="sal-empty" id="salPayslipsEmpty" style="display:none;">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                                <p>You do not have any payslips generated yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== BILL REIMBURSEMENT TAB ===== -->
+                <div class="sal-tab-pane" id="salReimbPane">
+
+                    <!-- Submit form -->
+                    <div class="sal-section">
+                        <h2 class="sal-section-title"><i class="fas fa-plus-circle"></i> Submit New Reimbursement Request</h2>
+                        <form id="salReimbForm" class="sal-form">
+                            <div class="sal-form-row">
+                                <div class="sal-form-group">
+                                    <label>Date of Expense *</label>
+                                    <input type="date" id="salExpenseDate" required>
+                                </div>
+                                <div class="sal-form-group">
+                                    <label>Amount Claimed *</label>
+                                    <input type="number" id="salAmount" placeholder="e.g., 150.50" min="0" step="0.01" required>
+                                </div>
+                                <div class="sal-form-group">
+                                    <label>Project (Optional)</label>
+                                    <input type="text" id="salProject" placeholder="Type or select a project..." list="salProjectList" autocomplete="off">
+                                    <datalist id="salProjectList"></datalist>
+                                </div>
+                            </div>
+                            <div class="sal-form-group">
+                                <label>Description / Reason *</label>
+                                <textarea id="salDescription" placeholder="Describe the expense and purpose..." required></textarea>
+                            </div>
+                            <div class="sal-form-group">
+                                <label>Upload Bills (JPG, PNG, PDF accepted)</label>
+                                <div class="sal-file-wrap">
+                                    <i class="fas fa-paperclip"></i>
+                                    <input type="file" id="salBillFile" accept=".jpg,.jpeg,.png,.pdf">
+                                </div>
+                            </div>
+                            <div class="sal-form-actions">
+                                <button type="submit" class="sal-submit-btn">
+                                    <i class="fas fa-paper-plane"></i> Submit Claim
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- History -->
+                    <div class="sal-section">
+                        <h2 class="sal-section-title"><i class="fas fa-history"></i> My Reimbursement History</h2>
+                        <div class="sal-table-wrap">
+                            <table class="sal-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date of Expense</th>
+                                        <th>Project</th>
+                                        <th>Amount</th>
+                                        <th>Description</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="salReimbBody"></tbody>
+                            </table>
+                            <div class="sal-empty" id="salReimbEmpty">
+                                <i class="fas fa-receipt"></i>
+                                <p>No reimbursement history found.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- end reimbursement tab -->
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Salary Toast -->
+    <div id="salToast" class="sal-toast"></div>
+
+    <!-- Leaves Page -->
+    <div id="leavePage" class="page">
+        <div class="lv-container">
+            <header class="lv-header">
+                <div class="header-left">
+                    <button class="back-btn" id="backFromLeaves">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <img src="DC Studio Logo new end.png" alt="DC Studio" class="header-logo">
+                </div>
+                <h1 class="page-title">My Leaves</h1>
+                <div class="header-right"></div>
+            </header>
+
+            <div class="lv-body">
+                <!-- Leave Summary -->
+                <div class="lv-section">
+                    <h2 class="lv-section-title"><i class="fas fa-chart-bar"></i> Leave Summary (<span id="lvSummaryYear">2026</span>)</h2>
+                    <div class="lv-summary-wrap">
+                        <table class="lv-summary-table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Allocated</th>
+                                    <th>Pending</th>
+                                    <th>Approved</th>
+                                    <th>Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lvSummaryBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Apply for Leave -->
+                <div class="lv-section">
+                    <h2 class="lv-section-title"><i class="fas fa-paper-plane"></i> Apply for Leave</h2>
+                    <form id="lvApplyForm" class="lv-form">
+                        <div class="lv-form-row">
+                            <div class="lv-form-group">
+                                <label>Select Type of Leave</label>
+                                <select id="lvLeaveType" required>
+                                    <option value="">Select...</option>
+                                    <option value="CL">Casual Leave (CL)</option>
+                                    <option value="PL">Privilege Leave (PL)</option>
+                                    <option value="SL">Sick Leave (SL)</option>
+                                </select>
+                            </div>
+                            <div class="lv-form-group">
+                                <label>From</label>
+                                <input type="date" id="lvFromDate" required>
+                            </div>
+                            <div class="lv-form-group">
+                                <label>To</label>
+                                <input type="date" id="lvToDate" required>
+                            </div>
+                            <div class="lv-form-group">
+                                <label>Next Joining Date</label>
+                                <input type="date" id="lvNextJoining">
+                            </div>
+                            <div class="lv-form-group">
+                                <label>No of Days</label>
+                                <input type="number" id="lvNoDays" value="0.5" min="0.5" step="0.5" placeholder="0.5">
+                            </div>
+                        </div>
+                        <div class="lv-form-group">
+                            <label>Remarks</label>
+                            <textarea id="lvRemarks" placeholder="Enter reason for leave..."></textarea>
+                        </div>
+                        <div class="lv-form-actions">
+                            <button type="submit" class="lv-apply-btn">Apply</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- My Leave Requests -->
+                <div class="lv-section">
+                    <h2 class="lv-section-title"><i class="fas fa-list-alt"></i> My Leave Requests</h2>
+                    <div class="lv-requests-wrap">
+                        <table class="lv-requests-table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Days</th>
+                                    <th>Reason</th>
+                                    <th>Status</th>
+                                    <th>Approver Comments</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lvRequestsBody">
+                            </tbody>
+                        </table>
+                        <div class="lv-empty" id="lvEmpty">
+                            <i class="fas fa-clipboard-list"></i>
+                            <p>No leave history found.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaves Toast -->
+    <div id="lvToast" class="lv-toast"></div>
+
     <!-- Calendar Page -->
     <div id="calendarPage" class="page">
         <div class="cal-container">
@@ -1061,5 +1299,7 @@
     <script src="js/reports.js"></script>
     <script src="js/task-tracker.js"></script>
     <script src="js/calendar.js"></script>
+    <script src="js/leaves.js"></script>
+    <script src="js/salary.js"></script>
 </body>
 </html>

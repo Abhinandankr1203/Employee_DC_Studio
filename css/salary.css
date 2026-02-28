@@ -1,0 +1,452 @@
+/* ==================== SALARY TRACKER PAGE ==================== */
+
+#salaryPage {
+    background: #fafafa !important;
+    overflow: hidden;
+}
+
+.sal-container {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ---- Header (identical to task tracker) ---- */
+.sal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    z-index: 100;
+    flex-shrink: 0;
+}
+
+.sal-header .header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.sal-header .header-logo {
+    width: 80px;
+    height: auto;
+}
+
+#salaryPage .back-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: #f5f5f5;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    color: #333;
+}
+
+#salaryPage .back-btn:hover {
+    background: #eb7846;
+    color: white;
+}
+
+#salaryPage .page-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #333;
+}
+
+/* ---- Tabs Bar ---- */
+.sal-tabs-bar {
+    display: flex;
+    background: white;
+    border-bottom: 2px solid #f0f0f0;
+    padding: 0 30px;
+    flex-shrink: 0;
+}
+
+.sal-tab {
+    padding: 14px 20px;
+    border: none;
+    background: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #888;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sal-tab:hover:not(.active) {
+    color: #555;
+    background: #f9fafb;
+}
+
+.sal-tab.active {
+    color: #eb7846;
+    border-bottom-color: #eb7846;
+    font-weight: 600;
+}
+
+/* ---- Scrollable Body ---- */
+.sal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 30px;
+}
+
+/* ---- Tab Panes ---- */
+.sal-tab-pane {
+    display: none;
+}
+
+.sal-tab-pane.active {
+    display: block;
+}
+
+/* ---- Section Cards (matches task tracker / leaves) ---- */
+.sal-section {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.sal-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 18px 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sal-section-title i {
+    color: #eb7846;
+}
+
+/* ==================== TABLES ==================== */
+
+.sal-table-wrap {
+    overflow-x: auto;
+}
+
+.sal-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.sal-table th {
+    background: #f8f9fa;
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #eee;
+}
+
+.sal-table td {
+    padding: 14px 16px;
+    font-size: 0.9rem;
+    color: #444;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+
+.sal-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.sal-table tbody tr {
+    transition: background 0.2s;
+}
+
+.sal-table tbody tr:hover {
+    background: #fafafa;
+}
+
+/* Emphasis cells */
+.sal-net-pay {
+    font-weight: 700;
+    color: #059669;
+    font-size: 0.95rem;
+}
+
+.sal-gross {
+    font-weight: 500;
+    color: #333;
+}
+
+.sal-deductions {
+    font-weight: 500;
+    color: #dc2626;
+}
+
+/* Status badges */
+.sal-status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.sal-status-paid      { background: #ecfdf5; color: #059669; }
+.sal-status-pending   { background: #fffbeb; color: #d97706; }
+.sal-status-approved  { background: #ecfdf5; color: #059669; }
+.sal-status-rejected  { background: #fef2f2; color: #dc2626; }
+.sal-status-cancelled { background: #f9fafb; color: #6b7280; }
+
+/* Action buttons */
+.sal-action-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+    background: #f5f5f5;
+    color: #666;
+}
+
+.sal-action-btn:hover {
+    background: #eb7846;
+    color: white;
+}
+
+.sal-action-btn.sal-delete-btn:hover {
+    background: #dc2626;
+    color: white;
+}
+
+/* Empty state */
+.sal-empty {
+    text-align: center;
+    padding: 50px 20px;
+    color: #aaa;
+}
+
+.sal-empty i {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    color: #ddd;
+    display: block;
+}
+
+.sal-empty p {
+    margin: 0;
+    color: #888;
+    font-size: 0.9rem;
+}
+
+/* ==================== REIMBURSEMENT FORM ==================== */
+
+.sal-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.sal-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 16px;
+    align-items: end;
+}
+
+.sal-form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+}
+
+.sal-form-row .sal-form-group {
+    margin-bottom: 0;
+}
+
+.sal-form-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 6px;
+}
+
+.sal-form-group input[type="date"],
+.sal-form-group input[type="number"],
+.sal-form-group input[type="text"],
+.sal-form-group textarea,
+.sal-form-group select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: 'Poppins', sans-serif;
+    color: #333;
+    background: white;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.sal-form-group input:focus,
+.sal-form-group textarea:focus,
+.sal-form-group select:focus {
+    border-color: #eb7846;
+    box-shadow: 0 0 0 3px rgba(235, 120, 70, 0.1);
+}
+
+.sal-form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* File upload area */
+.sal-file-wrap {
+    border: 2px dashed #e0e0e0;
+    border-radius: 8px;
+    padding: 14px 16px;
+    background: #fafafa;
+    transition: border-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sal-file-wrap:hover {
+    border-color: #eb7846;
+    background: #fff7ed;
+}
+
+.sal-file-wrap i {
+    color: #eb7846;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.sal-file-wrap input[type="file"] {
+    flex: 1;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.88rem;
+    color: #555;
+    cursor: pointer;
+    border: none !important;
+    background: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    width: auto;
+}
+
+/* Submit button */
+.sal-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 4px;
+}
+
+.sal-submit-btn {
+    padding: 10px 28px;
+    border: none;
+    background: linear-gradient(135deg, #eb7846, #e5693a);
+    color: white;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sal-submit-btn:hover {
+    box-shadow: 0 4px 12px rgba(235, 120, 70, 0.4);
+    transform: translateY(-1px);
+}
+
+.sal-submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ==================== TOAST ==================== */
+
+.sal-toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    padding: 14px 24px;
+    border-radius: 10px;
+    color: white;
+    font-size: 0.9rem;
+    font-family: 'Poppins', sans-serif;
+    z-index: 2000;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+}
+
+.sal-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.sal-toast.success { background: #10b981; }
+.sal-toast.error   { background: #dc2626; }
+
+/* ==================== RESPONSIVE ==================== */
+
+@media (max-width: 768px) {
+    .sal-header { padding: 12px 16px; }
+    .sal-header .header-left { gap: 10px; }
+    .sal-header .header-logo { width: 60px; }
+    #salaryPage .page-title { font-size: 1rem; }
+    #salaryPage .back-btn { width: 36px; height: 36px; }
+
+    .sal-tabs-bar { padding: 0 16px; overflow-x: auto; }
+    .sal-tab { padding: 12px 14px; font-size: 0.85rem; white-space: nowrap; }
+
+    .sal-body { padding: 16px; }
+    .sal-section { padding: 18px 16px; }
+
+    .sal-form-row { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+    .sal-header { padding: 10px 12px; }
+    .sal-body { padding: 12px; }
+    .sal-submit-btn { width: 100%; justify-content: center; }
+}

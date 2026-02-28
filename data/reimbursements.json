@@ -1,0 +1,27 @@
+{
+  "claims": [
+    {
+      "id": 1,
+      "expense_date": "2026-02-28",
+      "amount": 500,
+      "project": "",
+      "description": "Test expense",
+      "file_name": null,
+      "status": "cancelled",
+      "approver_comments": "",
+      "created_at": "2026-02-28T10:06:17.260Z"
+    },
+    {
+      "id": 2,
+      "expense_date": "2026-02-28",
+      "amount": 15000,
+      "project": "",
+      "description": "hu",
+      "file_name": "image (1).png",
+      "status": "pending",
+      "approver_comments": "",
+      "created_at": "2026-02-28T13:48:26.278Z"
+    }
+  ],
+  "nextId": 3
+}

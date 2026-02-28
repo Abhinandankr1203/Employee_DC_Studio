@@ -4,7 +4,7 @@ const path = require('path');
 const url = require('url');
 const { google } = require('googleapis');
 
-const PORT = 8000;
+const PORT = process.env.PORT || 8000;
 const SCOPES = [
     'https://www.googleapis.com/auth/calendar',
     'https://www.googleapis.com/auth/calendar.events',
@@ -17,6 +17,9 @@ const TOKEN_PATH = path.join(__dirname, 'token.json');
 const MEETINGS_PATH = path.join(__dirname, 'data', 'meetings.json');
 const EMPLOYEES_PATH = path.join(__dirname, 'data', 'employees.json');
 const TASKS_PATH = path.join(__dirname, 'data', 'tasks.json');
+const LEAVES_PATH = path.join(__dirname, 'data', 'leaves.json');
+const PAYSLIPS_PATH = path.join(__dirname, 'data', 'payslips.json');
+const REIMBURSEMENTS_PATH = path.join(__dirname, 'data', 'reimbursements.json');
 
 // Ensure data directory exists
 if (!fs.existsSync(path.join(__dirname, 'data'))) {
@@ -38,6 +41,48 @@ if (!fs.existsSync(EMPLOYEES_PATH)) {
             { id: 5, name: 'Vikram Singh', email: 'vikram@dcstudio.com', department: 'Development', designation: 'Backend Developer' }
         ]
     }, null, 2));
+}
+
+if (!fs.existsSync(LEAVES_PATH)) {
+    fs.writeFileSync(LEAVES_PATH, JSON.stringify({
+        allocations: [
+            { year: 2026, type: 'CL', label: 'Casual Leave',   allocated: 12 },
+            { year: 2026, type: 'PL', label: 'Privilege Leave', allocated: 15 },
+            { year: 2026, type: 'SL', label: 'Sick Leave',      allocated: 7  }
+        ],
+        requests: [],
+        nextId: 1
+    }, null, 2));
+}
+
+if (!fs.existsSync(PAYSLIPS_PATH)) {
+    fs.writeFileSync(PAYSLIPS_PATH, JSON.stringify({
+        payslips: [
+            {
+                id: 1, period: 'December 2025', period_date: '2025-12-01',
+                gross_salary: 50000, basic: 25000, hra: 10000, travel_allowance: 5000, other_allowance: 10000,
+                pf: 1800, tds: 2500, professional_tax: 200, total_deductions: 4500, net_pay: 45500,
+                status: 'paid', paid_on: '2025-12-31', created_at: '2025-12-31T10:00:00.000Z'
+            },
+            {
+                id: 2, period: 'January 2026', period_date: '2026-01-01',
+                gross_salary: 50000, basic: 25000, hra: 10000, travel_allowance: 5000, other_allowance: 10000,
+                pf: 1800, tds: 2500, professional_tax: 200, total_deductions: 4500, net_pay: 45500,
+                status: 'paid', paid_on: '2026-01-31', created_at: '2026-01-31T10:00:00.000Z'
+            },
+            {
+                id: 3, period: 'February 2026', period_date: '2026-02-01',
+                gross_salary: 50000, basic: 25000, hra: 10000, travel_allowance: 5000, other_allowance: 10000,
+                pf: 1800, tds: 2500, professional_tax: 200, total_deductions: 4500, net_pay: 45500,
+                status: 'paid', paid_on: '2026-02-28', created_at: '2026-02-28T10:00:00.000Z'
+            }
+        ],
+        nextId: 4
+    }, null, 2));
+}
+
+if (!fs.existsSync(REIMBURSEMENTS_PATH)) {
+    fs.writeFileSync(REIMBURSEMENTS_PATH, JSON.stringify({ claims: [], nextId: 1 }, null, 2));
 }
 
 if (!fs.existsSync(TASKS_PATH)) {
@@ -160,6 +205,38 @@ function loadTasks() {
 // Save tasks data
 function saveTasks(data) {
     fs.writeFileSync(TASKS_PATH, JSON.stringify(data, null, 2));
+}
+
+// Load leaves data
+function loadLeaves() {
+    try {
+        return JSON.parse(fs.readFileSync(LEAVES_PATH));
+    } catch (err) {
+        return { allocations: [], requests: [], nextId: 1 };
+    }
+}
+
+// Save leaves data
+function saveLeaves(data) {
+    fs.writeFileSync(LEAVES_PATH, JSON.stringify(data, null, 2));
+}
+
+// Load/save payslips
+function loadPayslips() {
+    try { return JSON.parse(fs.readFileSync(PAYSLIPS_PATH)); }
+    catch (err) { return { payslips: [], nextId: 1 }; }
+}
+function savePayslips(data) {
+    fs.writeFileSync(PAYSLIPS_PATH, JSON.stringify(data, null, 2));
+}
+
+// Load/save reimbursements
+function loadReimbursements() {
+    try { return JSON.parse(fs.readFileSync(REIMBURSEMENTS_PATH)); }
+    catch (err) { return { claims: [], nextId: 1 }; }
+}
+function saveReimbursements(data) {
+    fs.writeFileSync(REIMBURSEMENTS_PATH, JSON.stringify(data, null, 2));
 }
 
 // Create Google Calendar event with Meet link
@@ -875,6 +952,156 @@ async function handleAPI(req, res, pathname, query) {
             }
         } catch (error) {
             console.error('Calendar quick-add error:', error);
+            sendJSON(res, { error: error.message }, 500);
+        }
+        return;
+    }
+
+    // Payslips: List all
+    if (pathname === '/api/salary/payslips' && req.method === 'GET') {
+        const data = loadPayslips();
+        // Return newest first
+        sendJSON(res, { payslips: data.payslips.slice().reverse() });
+        return;
+    }
+
+    // Payslips: Get single (for PDF generation)
+    if (pathname.match(/^\/api\/salary\/payslips\/\d+$/) && req.method === 'GET') {
+        const id = parseInt(pathname.split('/')[4]);
+        const { payslips } = loadPayslips();
+        const payslip = payslips.find(p => p.id === id);
+        if (payslip) { sendJSON(res, { payslip }); }
+        else { sendJSON(res, { error: 'Payslip not found' }, 404); }
+        return;
+    }
+
+    // Reimbursements: List all
+    if (pathname === '/api/reimbursements' && req.method === 'GET') {
+        const data = loadReimbursements();
+        sendJSON(res, { claims: data.claims.slice().reverse() });
+        return;
+    }
+
+    // Reimbursements: Submit new claim
+    if (pathname === '/api/reimbursements' && req.method === 'POST') {
+        try {
+            const body = await parseBody(req);
+            const data = loadReimbursements();
+            const newClaim = {
+                id: data.nextId++,
+                expense_date: body.expense_date || null,
+                amount: parseFloat(body.amount) || 0,
+                project: body.project || '',
+                description: body.description || '',
+                file_name: body.file_name || null,
+                status: 'pending',
+                approver_comments: '',
+                created_at: new Date().toISOString()
+            };
+            data.claims.push(newClaim);
+            saveReimbursements(data);
+            sendJSON(res, { success: true, claim: newClaim }, 201);
+        } catch (error) {
+            sendJSON(res, { error: error.message }, 500);
+        }
+        return;
+    }
+
+    // Reimbursements: Cancel (soft-delete sets status to cancelled)
+    if (pathname.match(/^\/api\/reimbursements\/\d+$/) && req.method === 'DELETE') {
+        try {
+            const id = parseInt(pathname.split('/')[3]);
+            const data = loadReimbursements();
+            const idx = data.claims.findIndex(c => c.id === id);
+            if (idx === -1) { sendJSON(res, { error: 'Claim not found' }, 404); return; }
+            if (data.claims[idx].status !== 'pending') {
+                sendJSON(res, { error: 'Only pending claims can be cancelled' }, 400);
+                return;
+            }
+            data.claims[idx].status = 'cancelled';
+            saveReimbursements(data);
+            sendJSON(res, { success: true });
+        } catch (error) {
+            sendJSON(res, { error: error.message }, 500);
+        }
+        return;
+    }
+
+    // Leaves: Summary (allocated / pending / approved / balance per type)
+    if (pathname === '/api/leaves/summary' && req.method === 'GET') {
+        const year = parseInt(query.year) || new Date().getFullYear();
+        const data = loadLeaves();
+        const allocations = data.allocations.filter(a => a.year === year);
+
+        const summary = allocations.map(alloc => {
+            const reqs = data.requests.filter(r => r.type === alloc.type && r.from_date && r.from_date.startsWith(String(year)));
+            const pending  = reqs.filter(r => r.status === 'pending').reduce((s, r) => s + r.no_days, 0);
+            const approved = reqs.filter(r => r.status === 'approved').reduce((s, r) => s + r.no_days, 0);
+            const balance  = alloc.allocated - approved;
+            return { type: alloc.type, label: alloc.label, allocated: alloc.allocated, pending, approved, balance };
+        });
+
+        sendJSON(res, { summary });
+        return;
+    }
+
+    // Leaves: List requests
+    if (pathname === '/api/leaves' && req.method === 'GET') {
+        const data = loadLeaves();
+        const leaves = data.requests.slice().reverse();
+        sendJSON(res, { leaves });
+        return;
+    }
+
+    // Leaves: Apply (create request)
+    if (pathname === '/api/leaves' && req.method === 'POST') {
+        try {
+            const body = await parseBody(req);
+            const data = loadLeaves();
+
+            const newLeave = {
+                id: data.nextId++,
+                type: body.type,
+                from_date: body.from_date,
+                to_date: body.to_date,
+                next_joining_date: body.next_joining_date || null,
+                no_days: parseFloat(body.no_days) || 1,
+                reason: body.reason || '',
+                status: 'pending',
+                approver_comments: '',
+                created_at: new Date().toISOString()
+            };
+
+            data.requests.push(newLeave);
+            saveLeaves(data);
+            sendJSON(res, { success: true, leave: newLeave }, 201);
+        } catch (error) {
+            sendJSON(res, { error: error.message }, 500);
+        }
+        return;
+    }
+
+    // Leaves: Cancel (delete) a request
+    if (pathname.match(/^\/api\/leaves\/\d+$/) && req.method === 'DELETE') {
+        try {
+            const id = parseInt(pathname.split('/')[3]);
+            const data = loadLeaves();
+            const idx = data.requests.findIndex(r => r.id === id);
+
+            if (idx === -1) {
+                sendJSON(res, { error: 'Leave request not found' }, 404);
+                return;
+            }
+
+            if (data.requests[idx].status !== 'pending') {
+                sendJSON(res, { error: 'Only pending requests can be cancelled' }, 400);
+                return;
+            }
+
+            data.requests[idx].status = 'cancelled';
+            saveLeaves(data);
+            sendJSON(res, { success: true });
+        } catch (error) {
             sendJSON(res, { error: error.message }, 500);
         }
         return;

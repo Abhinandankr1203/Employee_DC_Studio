@@ -262,6 +262,82 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Salary Tracker button click handler
+    const salaryBtn = document.getElementById('salaryBtn');
+    const salaryPage = document.getElementById('salaryPage');
+    const backFromSalary = document.getElementById('backFromSalary');
+
+    if (salaryBtn) {
+        salaryBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            console.log('=== Salary Tracker Clicked ===');
+
+            if (salaryPage && dashboardPage) {
+                dashboardPage.classList.remove('active');
+                salaryPage.classList.add('active');
+
+                if (typeof DCSalary !== 'undefined') {
+                    DCSalary.init();
+                    console.log('DCSalary initialized');
+                } else {
+                    console.error('DCSalary module not found');
+                }
+            }
+        });
+    }
+
+    if (backFromSalary) {
+        backFromSalary.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (salaryPage && dashboardPage) {
+                if (typeof DCSalary !== 'undefined') DCSalary.destroy();
+                salaryPage.classList.remove('active');
+                dashboardPage.classList.add('active');
+                console.log('Returned to dashboard from salary');
+            }
+        });
+    }
+
+    // Leaves button click handler
+    const leavesBtn = document.getElementById('leavesBtn');
+    const leavePage = document.getElementById('leavePage');
+    const backFromLeaves = document.getElementById('backFromLeaves');
+
+    if (leavesBtn) {
+        leavesBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            console.log('=== Leaves Clicked ===');
+
+            if (leavePage && dashboardPage) {
+                dashboardPage.classList.remove('active');
+                leavePage.classList.add('active');
+
+                if (typeof DCLeaves !== 'undefined') {
+                    DCLeaves.init();
+                    console.log('DCLeaves initialized');
+                } else {
+                    console.error('DCLeaves module not found');
+                }
+            }
+        });
+    }
+
+    if (backFromLeaves) {
+        backFromLeaves.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (leavePage && dashboardPage) {
+                if (typeof DCLeaves !== 'undefined') DCLeaves.destroy();
+                leavePage.classList.remove('active');
+                dashboardPage.classList.add('active');
+                console.log('Returned to dashboard from leaves');
+            }
+        });
+    }
+
     // User profile click handler
     const userProfile = document.querySelector('.user-profile');
     if (userProfile) {

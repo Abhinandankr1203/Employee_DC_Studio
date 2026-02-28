@@ -1,0 +1,37 @@
+{
+  "allocations": [
+    {
+      "year": 2026,
+      "type": "CL",
+      "label": "Casual Leave",
+      "allocated": 12
+    },
+    {
+      "year": 2026,
+      "type": "PL",
+      "label": "Privilege Leave",
+      "allocated": 15
+    },
+    {
+      "year": 2026,
+      "type": "SL",
+      "label": "Sick Leave",
+      "allocated": 7
+    }
+  ],
+  "requests": [
+    {
+      "id": 1,
+      "type": "CL",
+      "from_date": "2026-02-28",
+      "to_date": "2026-03-06",
+      "next_joining_date": "2026-03-07",
+      "no_days": 7,
+      "reason": "going in a trip",
+      "status": "pending",
+      "approver_comments": "",
+      "created_at": "2026-02-28T09:26:46.345Z"
+    }
+  ],
+  "nextId": 2
+}
