@@ -1,0 +1,154 @@
+{
+  "projects": [
+    {
+      "id": 1,
+      "code": "DC-001",
+      "name": "Riverside Villa",
+      "client": "Mr. Arjun Mehta",
+      "client_email": "arjun.mehta@email.com",
+      "client_phone": "+91 98765 43210",
+      "location": "Koregaon Park, Pune",
+      "area_sqft": 4500,
+      "description": "Luxury 4BHK villa with modern architecture and eco-friendly design featuring passive cooling, solar panels and a rooftop garden.",
+      "current_phase": "construction",
+      "phases_done": [
+        "concept",
+        "design",
+        "approval"
+      ],
+      "start_date": "2025-09-01",
+      "end_date": "2026-06-30",
+      "team_member_ids": [
+        1,
+        2,
+        3
+      ],
+      "status": "active",
+      "created_at": "2025-09-01T09:00:00.000Z",
+      "updated_at": "2025-09-01T09:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "code": "DC-002",
+      "name": "Greenfield Corporate Office",
+      "client": "Greenfield Pvt. Ltd.",
+      "client_email": "info@greenfield.co.in",
+      "client_phone": "+91 98123 45678",
+      "location": "Baner, Pune",
+      "area_sqft": 12000,
+      "description": "5-storey commercial office building with open-plan workspaces, collaborative zones and a sky garden on the 5th floor.",
+      "current_phase": "design",
+      "phases_done": [
+        "concept"
+      ],
+      "start_date": "2026-01-15",
+      "end_date": "2027-03-31",
+      "team_member_ids": [
+        1,
+        4,
+        5
+      ],
+      "status": "active",
+      "created_at": "2026-01-15T09:00:00.000Z",
+      "updated_at": "2026-01-15T09:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "code": "DC-003",
+      "name": "Lakeside Boutique Hotel",
+      "client": "Ms. Priya Singhania",
+      "client_email": "priya.s@lakeside.com",
+      "client_phone": "+91 99887 76655",
+      "location": "Lavasa, Maharashtra",
+      "area_sqft": 28000,
+      "description": "30-room boutique hotel with lakeside views, traditional Maharashtrian architectural elements fused with contemporary interiors.",
+      "current_phase": "approval",
+      "phases_done": [
+        "concept",
+        "design"
+      ],
+      "start_date": "2025-11-01",
+      "end_date": "2027-09-30",
+      "team_member_ids": [
+        2,
+        3,
+        4
+      ],
+      "status": "active",
+      "created_at": "2025-11-01T09:00:00.000Z",
+      "updated_at": "2025-11-01T09:00:00.000Z"
+    },
+    {
+      "id": 4,
+      "code": "DC-004",
+      "name": "Heritage Library Renovation",
+      "client": "City Municipal Corporation",
+      "client_email": "library@punecmc.org",
+      "client_phone": "+91 20-2601-2345",
+      "location": "Shivajinagar, Pune",
+      "area_sqft": 8000,
+      "description": "Sensitive renovation and modernization of a 1930s heritage library building — preserving original facade while upgrading internals.",
+      "current_phase": "handover",
+      "phases_done": [
+        "concept",
+        "design",
+        "approval",
+        "construction"
+      ],
+      "start_date": "2025-03-01",
+      "end_date": "2026-03-31",
+      "team_member_ids": [
+        1,
+        3,
+        5
+      ],
+      "status": "active",
+      "created_at": "2025-03-01T09:00:00.000Z",
+      "updated_at": "2025-03-01T09:00:00.000Z"
+    },
+    {
+      "id": 5,
+      "code": "DC-005",
+      "name": "Skyline Residential Tower",
+      "client": "Skyline Developers",
+      "client_email": "projects@skylinedev.com",
+      "client_phone": "+91 98654 32100",
+      "location": "Hinjawadi, Pune",
+      "area_sqft": 85000,
+      "description": "24-floor residential tower with 120 premium apartments, clubhouse, Olympic pool and landscaped podium garden.",
+      "current_phase": "concept",
+      "phases_done": [],
+      "start_date": "2026-02-15",
+      "end_date": "2029-12-31",
+      "team_member_ids": [
+        1,
+        2,
+        4,
+        5
+      ],
+      "status": "active",
+      "created_at": "2026-02-15T09:00:00.000Z",
+      "updated_at": "2026-02-15T09:00:00.000Z"
+    },
+    {
+      "id": 6,
+      "code": "DC-006",
+      "name": "Test Tower",
+      "client": "Test Client",
+      "client_email": "",
+      "client_phone": "",
+      "location": "",
+      "area_sqft": 0,
+      "description": "",
+      "current_phase": "concept",
+      "phases_done": [],
+      "start_date": "2026-03-01",
+      "end_date": "2027-12-31",
+      "team_member_ids": [],
+      "status": "active",
+      "created_at": "2026-02-28T15:07:56.533Z",
+      "updated_at": "2026-02-28T15:07:56.533Z"
+    }
+  ],
+  "nextId": 7
+}

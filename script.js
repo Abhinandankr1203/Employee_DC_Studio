@@ -327,6 +327,34 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Project Tracker button handler
+    const projectTrackerBtn  = document.getElementById('projectTrackerBtn');
+    const projectTrackerPage = document.getElementById('projectTrackerPage');
+    if (projectTrackerBtn) {
+        projectTrackerBtn.addEventListener('click', function (e) {
+            e.preventDefault(); e.stopPropagation();
+            if (projectTrackerPage && dashboardPage) {
+                dashboardPage.classList.remove('active');
+                projectTrackerPage.classList.add('active');
+                if (typeof DCProjects !== 'undefined') DCProjects.init();
+            }
+        });
+    }
+
+    // Team button handler
+    const teamBtn  = document.getElementById('teamBtn');
+    const teamPage = document.getElementById('teamPage');
+    if (teamBtn) {
+        teamBtn.addEventListener('click', function (e) {
+            e.preventDefault(); e.stopPropagation();
+            if (teamPage && dashboardPage) {
+                dashboardPage.classList.remove('active');
+                teamPage.classList.add('active');
+                if (typeof DCTeam !== 'undefined') DCTeam.init();
+            }
+        });
+    }
+
     // User profile click handler
     const userProfile = document.querySelector('.user-profile');
     if (userProfile) {

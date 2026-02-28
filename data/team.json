@@ -1,0 +1,60 @@
+{
+  "members": [
+    {
+      "id": 1,
+      "name": "Rahul Sharma",
+      "designation": "Principal Architect",
+      "department": "Design",
+      "email": "rahul@dcstudio.com",
+      "phone": "+91 98765 43210",
+      "skills": ["AutoCAD", "Revit", "SketchUp", "Project Management", "Sustainable Design"],
+      "joined_date": "2019-03-01",
+      "created_at": "2019-03-01T09:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "name": "Ananya Desai",
+      "designation": "Senior Architect",
+      "department": "Design",
+      "email": "ananya@dcstudio.com",
+      "phone": "+91 97654 32109",
+      "skills": ["AutoCAD", "Revit", "3ds Max", "V-Ray", "Interior Design"],
+      "joined_date": "2020-07-15",
+      "created_at": "2020-07-15T09:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "name": "Kiran Patil",
+      "designation": "Structural Engineer",
+      "department": "Civil & Structural",
+      "email": "kiran@dcstudio.com",
+      "phone": "+91 96543 21098",
+      "skills": ["STAAD Pro", "ETABS", "AutoCAD", "RCC Design", "Foundation Design"],
+      "joined_date": "2021-01-10",
+      "created_at": "2021-01-10T09:00:00.000Z"
+    },
+    {
+      "id": 4,
+      "name": "Meera Joshi",
+      "designation": "Interior Designer",
+      "department": "Interior",
+      "email": "meera@dcstudio.com",
+      "phone": "+91 95432 10987",
+      "skills": ["AutoCAD", "3ds Max", "Lumion", "Material Selection", "Space Planning"],
+      "joined_date": "2021-06-01",
+      "created_at": "2021-06-01T09:00:00.000Z"
+    },
+    {
+      "id": 5,
+      "name": "Suresh Nair",
+      "designation": "Project Manager",
+      "department": "Project Management",
+      "email": "suresh@dcstudio.com",
+      "phone": "+91 94321 09876",
+      "skills": ["MS Project", "Site Supervision", "Contract Management", "AutoCAD", "Cost Estimation"],
+      "joined_date": "2020-02-20",
+      "created_at": "2020-02-20T09:00:00.000Z"
+    }
+  ],
+  "nextId": 6
+}

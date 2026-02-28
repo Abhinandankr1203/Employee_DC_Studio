@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="css/calendar.css">
     <link rel="stylesheet" href="css/leaves.css">
     <link rel="stylesheet" href="css/salary.css">
+    <link rel="stylesheet" href="css/projects.css">
+    <link rel="stylesheet" href="css/team.css">
     <style>
         /* Additional inline styles for animations */
 
@@ -216,7 +218,7 @@
                             </div>
                             <span class="menu-title">Task<br>Tracker</span>
                         </div>
-                        <div class="menu-item">
+                        <div class="menu-item" id="projectTrackerBtn">
                             <div class="menu-icon">
                                 <i class="fas fa-layer-group"></i>
                             </div>
@@ -228,7 +230,7 @@
                             </div>
                             <span class="menu-title">Reports</span>
                         </div>
-                        <div class="menu-item">
+                        <div class="menu-item" id="teamBtn">
                             <div class="menu-icon">
                                 <i class="fas fa-users"></i>
                             </div>
@@ -741,6 +743,270 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Project Tracker Page -->
+    <div id="projectTrackerPage" class="page">
+        <div class="pr-container">
+            <!-- Header -->
+            <header class="pr-header">
+                <div class="pr-header-left">
+                    <button class="pr-back-btn" id="prBackBtn"><i class="fas fa-arrow-left"></i></button>
+                    <div>
+                        <div class="pr-header-title">Project Tracker</div>
+                        <div class="pr-header-sub">Architecture firm project management</div>
+                    </div>
+                </div>
+                <div class="pr-header-right">
+                    <button class="pr-new-btn" id="prNewBtn">
+                        <i class="fas fa-plus"></i>
+                        <span>New Project</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Filter bar -->
+            <div class="pr-filters">
+                <button class="pr-filter-btn active" data-filter="all">All Projects</button>
+                <button class="pr-filter-btn" data-filter="active">Active</button>
+                <button class="pr-filter-btn" data-filter="on-hold">On Hold</button>
+                <button class="pr-filter-btn" data-filter="completed">Completed</button>
+            </div>
+
+            <!-- Cards grid -->
+            <div class="pr-body">
+                <div class="pr-grid" id="prGrid">
+                    <div class="pr-empty"><i class="fas fa-layer-group"></i><p>Loading projects…</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Detail Modal -->
+        <div class="pr-modal-overlay" id="prDetailOverlay">
+            <div class="pr-modal">
+                <div class="pr-modal-header">
+                    <div>
+                        <div class="pr-modal-code" id="prDetailCode"></div>
+                        <div class="pr-modal-title" id="prDetailTitle"></div>
+                        <div class="pr-modal-client" id="prDetailClient"></div>
+                    </div>
+                    <button class="pr-modal-close" id="prDetailClose"><i class="fas fa-times"></i></button>
+                </div>
+
+                <!-- Phase stepper -->
+                <div class="pr-modal-phases">
+                    <div class="pr-modal-phase-label">Project Progress</div>
+                    <div class="pr-modal-steps" id="prModalSteps"></div>
+                    <button class="pr-advance-btn" id="prAdvanceBtn"><i class="fas fa-arrow-right"></i> Advance Phase</button>
+                </div>
+
+                <!-- Body: info + team + tasks -->
+                <div class="pr-modal-body">
+                    <div class="pr-modal-col">
+                        <div class="pr-modal-section-title">Project Details</div>
+                        <div class="pr-info-row"><i class="fas fa-map-marker-alt"></i><div><div><strong>Location</strong></div><span id="prDetailLocation"></span></div></div>
+                        <div class="pr-info-row"><i class="fas fa-ruler-combined"></i><div><div><strong>Area</strong></div><span id="prDetailArea"></span></div></div>
+                        <div class="pr-info-row"><i class="fas fa-calendar-check"></i><div><div><strong>Start Date</strong></div><span id="prDetailStart"></span></div></div>
+                        <div class="pr-info-row"><i class="fas fa-calendar-times"></i><div><div><strong>Due Date</strong></div><span id="prDetailEnd"></span></div></div>
+                        <div class="pr-info-row"><i class="fas fa-envelope"></i><div><div><strong>Client Email</strong></div><span id="prDetailEmail"></span></div></div>
+                        <div class="pr-info-row"><i class="fas fa-align-left"></i><div><div><strong>Description</strong></div><span id="prDetailDesc" style="color:#6b7280;font-size:13px;line-height:1.5;"></span></div></div>
+
+                        <div class="pr-modal-section-title" style="margin-top:18px;">Assigned Team</div>
+                        <div class="pr-team-list" id="prDetailTeam"></div>
+                    </div>
+                    <div class="pr-modal-col">
+                        <div class="pr-modal-section-title">Linked Tasks</div>
+                        <div class="pr-task-list" id="prDetailTasks"></div>
+                    </div>
+                </div>
+
+                <div class="pr-modal-foot">
+                    <button class="pr-modal-delete-btn" id="prDeleteBtn"><i class="fas fa-trash"></i> Delete Project</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Project Form Modal -->
+        <div class="pr-modal-overlay pr-form-modal" id="prFormOverlay">
+            <div class="pr-modal">
+                <div class="pr-modal-header">
+                    <div class="pr-modal-title" id="prFormTitle">New Project</div>
+                    <button class="pr-modal-close" id="prFormClose"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="prForm">
+                    <div class="pr-form-body">
+                        <div class="pr-form-grid">
+                            <div class="pr-form-group">
+                                <label class="pr-form-label">Project Name *</label>
+                                <input name="prName" class="pr-form-input" placeholder="e.g. Riverside Villa" required maxlength="200">
+                            </div>
+                            <div class="pr-form-group">
+                                <label class="pr-form-label">Client Name *</label>
+                                <input name="prClient" class="pr-form-input" placeholder="e.g. Mr. Arjun Mehta" required maxlength="200">
+                            </div>
+                            <div class="pr-form-group">
+                                <label class="pr-form-label">Client Email</label>
+                                <input name="prClientEmail" class="pr-form-input" type="email" placeholder="client@email.com">
+                            </div>
+                            <div class="pr-form-group">
+                                <label class="pr-form-label">Client Phone</label>
+                                <input name="prClientPhone" class="pr-form-input" placeholder="+91 98765 43210">
+                            </div>
+                            <div class="pr-form-group">
+                                <label class="pr-form-label">Site Location</label>
+                                <input name="prLocation" class="pr-form-input" placeholder="e.g. Koregaon Park, Pune" maxlength="300">
+                            </div>
+                            <div class="pr-form-group">
+                                <label class="pr-form-label">Area (sq ft)</label>
+                                <input name="prArea" class="pr-form-input" type="number" placeholder="4500" min="0">
+                            </div>
+                            <div class="pr-form-group">
+                                <label class="pr-form-label">Start Date</label>
+                                <input name="prStartDate" class="pr-form-input" type="date">
+                            </div>
+                            <div class="pr-form-group">
+                                <label class="pr-form-label">Expected End Date</label>
+                                <input name="prEndDate" class="pr-form-input" type="date">
+                            </div>
+                            <div class="pr-form-group">
+                                <label class="pr-form-label">Current Phase</label>
+                                <select name="prPhase" class="pr-form-select">
+                                    <option value="concept">Concept</option>
+                                    <option value="design">Design</option>
+                                    <option value="approval">Approval</option>
+                                    <option value="construction">Construction</option>
+                                    <option value="handover">Handover</option>
+                                </select>
+                            </div>
+                            <div class="pr-form-group">
+                                <label class="pr-form-label">Status</label>
+                                <select name="prStatus" class="pr-form-select">
+                                    <option value="active">Active</option>
+                                    <option value="on-hold">On Hold</option>
+                                    <option value="completed">Completed</option>
+                                </select>
+                            </div>
+                            <div class="pr-form-group full">
+                                <label class="pr-form-label">Description</label>
+                                <textarea name="prDesc" class="pr-form-textarea" placeholder="Brief description of the project…" maxlength="2000"></textarea>
+                            </div>
+                            <div class="pr-form-group full">
+                                <label class="pr-form-label">Assign Team Members</label>
+                                <div class="pr-member-checks" id="prMemberChecks"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pr-modal-foot">
+                        <button type="button" class="pr-modal-delete-btn" id="prFormCancel">Cancel</button>
+                        <button type="submit" class="pr-new-btn pr-form-submit">Create Project</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div class="sal-toast" id="prToast"></div>
+    </div>
+
+    <!-- Team Page -->
+    <div id="teamPage" class="page">
+        <div class="tm-container">
+            <!-- Header -->
+            <header class="tm-header">
+                <div class="tm-header-left">
+                    <button class="tm-back-btn" id="tmBackBtn"><i class="fas fa-arrow-left"></i></button>
+                    <div>
+                        <div class="tm-header-title">Our Team</div>
+                        <div class="tm-header-sub">DC Studio architecture firm</div>
+                    </div>
+                </div>
+                <button class="tm-add-btn" id="tmAddBtn">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Add Member</span>
+                </button>
+            </header>
+
+            <!-- Filter bar -->
+            <div class="tm-filters">
+                <button class="tm-filter-btn active" data-dept="all">All</button>
+                <button class="tm-filter-btn" data-dept="Design">Design</button>
+                <button class="tm-filter-btn" data-dept="Civil & Structural">Civil &amp; Structural</button>
+                <button class="tm-filter-btn" data-dept="Interior">Interior</button>
+                <button class="tm-filter-btn" data-dept="Project Management">Project Management</button>
+                <button class="tm-filter-btn" data-dept="Administration">Administration</button>
+            </div>
+
+            <!-- Body -->
+            <div class="tm-body">
+                <!-- Stats row -->
+                <div class="tm-stats" id="tmStats"></div>
+                <!-- Cards grid -->
+                <div class="tm-grid" id="tmGrid">
+                    <div class="tm-empty"><i class="fas fa-users"></i><p>Loading team…</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add / Edit Member Modal -->
+        <div class="tm-modal-overlay" id="tmModalOverlay">
+            <div class="tm-modal">
+                <div class="tm-modal-header">
+                    <div class="tm-modal-title" id="tmModalTitle">Add Team Member</div>
+                    <button class="tm-modal-close" id="tmModalClose"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="tmForm">
+                    <div class="tm-form-body">
+                        <div class="tm-form-grid">
+                            <div class="tm-form-group full">
+                                <label class="tm-form-label">Full Name *</label>
+                                <input id="tmName" name="tmName" class="tm-form-input" placeholder="e.g. Rahul Sharma" required maxlength="100">
+                            </div>
+                            <div class="tm-form-group">
+                                <label class="tm-form-label">Designation *</label>
+                                <input id="tmDesig" name="tmDesig" class="tm-form-input" placeholder="e.g. Principal Architect" required maxlength="100">
+                            </div>
+                            <div class="tm-form-group">
+                                <label class="tm-form-label">Department</label>
+                                <select id="tmDept" name="tmDept" class="tm-form-select">
+                                    <option value="Design">Design</option>
+                                    <option value="Civil & Structural">Civil &amp; Structural</option>
+                                    <option value="Interior">Interior</option>
+                                    <option value="Project Management">Project Management</option>
+                                    <option value="Administration">Administration</option>
+                                </select>
+                            </div>
+                            <div class="tm-form-group">
+                                <label class="tm-form-label">Email *</label>
+                                <input id="tmEmail" name="tmEmail" class="tm-form-input" type="email" placeholder="name@dcstudio.com" required>
+                            </div>
+                            <div class="tm-form-group">
+                                <label class="tm-form-label">Phone</label>
+                                <input id="tmPhone" name="tmPhone" class="tm-form-input" placeholder="+91 98765 43210">
+                            </div>
+                            <div class="tm-form-group">
+                                <label class="tm-form-label">Joining Date</label>
+                                <input id="tmJoined" name="tmJoined" class="tm-form-input" type="date">
+                            </div>
+                            <div class="tm-form-group full">
+                                <label class="tm-form-label">Skills</label>
+                                <div class="tm-skills-input-wrap" onclick="document.getElementById('tmSkillInput').focus()">
+                                    <span id="tmSkillChips"></span>
+                                    <input id="tmSkillInput" class="tm-skill-text-input" placeholder="Type a skill and press Enter…">
+                                </div>
+                                <span class="tm-form-hint">e.g. AutoCAD, Revit, SketchUp, 3ds Max</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tm-form-actions">
+                        <button type="button" class="tm-cancel-btn" id="tmModalCancel">Cancel</button>
+                        <button type="submit" class="tm-save-btn">Save Member</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div class="tm-toast" id="tmToast"></div>
     </div>
 
     <!-- Salary Tracker Page -->
@@ -1301,5 +1567,7 @@
     <script src="js/calendar.js"></script>
     <script src="js/leaves.js"></script>
     <script src="js/salary.js"></script>
+    <script src="js/projects.js"></script>
+    <script src="js/team.js"></script>
 </body>
 </html>

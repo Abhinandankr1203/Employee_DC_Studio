@@ -39,6 +39,8 @@ const LEAVES_PATH         = path.join(DATA_DIR, 'leaves.json');
 const PAYSLIPS_PATH       = path.join(DATA_DIR, 'payslips.json');
 const REIMBURSEMENTS_PATH = path.join(DATA_DIR, 'reimbursements.json');
 const USERS_PATH          = path.join(DATA_DIR, 'users.json');
+const PROJECTS_PATH       = path.join(DATA_DIR, 'projects.json');
+const TEAM_PATH           = path.join(DATA_DIR, 'team.json');
 
 // ── Session store & rate limiter (in-memory) ───────────────────────────────
 const sessions   = new Map(); // token → { userId, name, email, role, expiresAt }
@@ -143,6 +145,8 @@ const loadLeaves         = () => readJSON(LEAVES_PATH,         { allocations: []
 const loadPayslips       = () => readJSON(PAYSLIPS_PATH,       { payslips: [], nextId: 1 });
 const loadReimbursements = () => readJSON(REIMBURSEMENTS_PATH, { claims: [], nextId: 1 });
 const loadUsers          = () => readJSON(USERS_PATH,          { users: [], nextId: 1 });
+const loadProjects       = () => readJSON(PROJECTS_PATH,       { projects: [], nextId: 1 });
+const loadTeam           = () => readJSON(TEAM_PATH,           { members: [], nextId: 1 });
 
 const saveMeetings       = d => writeJSON(MEETINGS_PATH,       d);
 const saveEmployees      = d => writeJSON(EMPLOYEES_PATH,      d);
@@ -151,6 +155,8 @@ const saveLeaves         = d => writeJSON(LEAVES_PATH,         d);
 const savePayslips       = d => writeJSON(PAYSLIPS_PATH,       d);
 const saveReimbursements = d => writeJSON(REIMBURSEMENTS_PATH, d);
 const saveUsers          = d => writeJSON(USERS_PATH,          d);
+const saveProjects       = d => writeJSON(PROJECTS_PATH,       d);
+const saveTeam           = d => writeJSON(TEAM_PATH,           d);
 
 // ── Startup: ensure data directory and seed files ─────────────────────────
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -803,6 +809,16 @@ async function handleAPI(req, res, pathname, query) {
             }
         });
 
+        // 4) Project end-date milestones
+        const { projects: calProjects } = await loadProjects();
+        calProjects.forEach(p => {
+            if (!p.end_date) return;
+            const [pY, pM] = p.end_date.split('-').map(Number);
+            if (pY === year && pM === month) {
+                combined.push({ id: 'p-' + p.id, title: p.name + ' — Deadline', type: 'project', date: p.end_date, status: p.status, phase: p.current_phase, client: p.client, description: 'Project deadline · ' + (p.client || ''), source: 'local' });
+            }
+        });
+
         sendJSON(res, req, { events: combined, authenticated });
         return;
     }
@@ -968,6 +984,211 @@ async function handleAPI(req, res, pathname, query) {
             await saveLeaves(data);
             sendJSON(res, req, { success: true });
         } catch (error) { sendJSON(res, req, { error: error.message }, 500); }
+        return;
+    }
+
+    // ── Projects: List ────────────────────────────────────────────────────
+    if (pathname === '/api/projects' && req.method === 'GET') {
+        try {
+            const data = await loadProjects();
+            let projects = data.projects;
+            if (query.status) projects = projects.filter(p => p.status === query.status);
+            if (query.phase)  projects = projects.filter(p => p.current_phase === query.phase);
+            const page = paginate(projects.slice().reverse(), query);
+            sendJSON(res, req, { projects: page.data, total: page.total });
+        } catch (e) { sendJSON(res, req, { error: 'Failed to load projects' }, 500); }
+        return;
+    }
+
+    // ── Projects: Create ──────────────────────────────────────────────────
+    if (pathname === '/api/projects' && req.method === 'POST') {
+        try {
+            const body = await parseBody(req);
+            if (!isStr(body.name, 200))   { sendJSON(res, req, { error: 'Project name is required' }, 400); return; }
+            if (!isStr(body.client, 200)) { sendJSON(res, req, { error: 'Client name is required' }, 400); return; }
+            const validPhases = ['concept','design','approval','construction','handover'];
+            const data = await loadProjects();
+            const nextCode = 'DC-' + String(data.nextId).padStart(3, '0');
+            const newProject = {
+                id: data.nextId++,
+                code: nextCode,
+                name: body.name.trim(),
+                client: body.client.trim(),
+                client_email: isStr(body.client_email, 254) ? body.client_email.trim() : '',
+                client_phone: isStr(body.client_phone, 30) ? body.client_phone.trim() : '',
+                location: isStr(body.location, 300) ? body.location.trim() : '',
+                area_sqft: isNum(parseFloat(body.area_sqft)) ? parseFloat(body.area_sqft) : 0,
+                description: isStr(body.description, 2000) ? body.description.trim() : '',
+                current_phase: validPhases.includes(body.current_phase) ? body.current_phase : 'concept',
+                phases_done: [],
+                start_date: isDate(body.start_date) ? body.start_date : null,
+                end_date: isDate(body.end_date) ? body.end_date : null,
+                team_member_ids: Array.isArray(body.team_member_ids) ? body.team_member_ids.map(Number).filter(n => !isNaN(n)) : [],
+                status: ['active','on-hold','completed'].includes(body.status) ? body.status : 'active',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            };
+            data.projects.push(newProject);
+            await saveProjects(data);
+            sendJSON(res, req, { success: true, project: newProject }, 201);
+        } catch (e) { sendJSON(res, req, { error: e.message }, 500); }
+        return;
+    }
+
+    // ── Projects: Get single ──────────────────────────────────────────────
+    if (pathname.match(/^\/api\/projects\/\d+$/) && req.method === 'GET') {
+        try {
+            const id = parseInt(pathname.split('/')[3]);
+            const { projects } = await loadProjects();
+            const p = projects.find(x => x.id === id);
+            p ? sendJSON(res, req, { project: p }) : sendJSON(res, req, { error: 'Project not found' }, 404);
+        } catch (e) { sendJSON(res, req, { error: 'Failed to load project' }, 500); }
+        return;
+    }
+
+    // ── Projects: Update ─────────────────────────────────────────────────
+    if (pathname.match(/^\/api\/projects\/\d+$/) && req.method === 'PUT') {
+        try {
+            const id = parseInt(pathname.split('/')[3]);
+            const body = await parseBody(req);
+            const validPhases = ['concept','design','approval','construction','handover'];
+            const data = await loadProjects();
+            const p = data.projects.find(x => x.id === id);
+            if (!p) { sendJSON(res, req, { error: 'Project not found' }, 404); return; }
+            if (isStr(body.name, 200))         p.name         = body.name.trim();
+            if (isStr(body.client, 200))       p.client       = body.client.trim();
+            if (isStr(body.client_email, 254)) p.client_email = body.client_email.trim();
+            if (isStr(body.client_phone, 30))  p.client_phone = body.client_phone.trim();
+            if (isStr(body.location, 300))     p.location     = body.location.trim();
+            if (isNum(parseFloat(body.area_sqft))) p.area_sqft = parseFloat(body.area_sqft);
+            if (isStr(body.description, 2000)) p.description  = body.description.trim();
+            if (validPhases.includes(body.current_phase)) p.current_phase = body.current_phase;
+            if (isDate(body.start_date)) p.start_date = body.start_date;
+            if (isDate(body.end_date))   p.end_date   = body.end_date;
+            if (Array.isArray(body.team_member_ids)) p.team_member_ids = body.team_member_ids.map(Number).filter(n => !isNaN(n));
+            if (['active','on-hold','completed'].includes(body.status)) p.status = body.status;
+            p.updated_at = new Date().toISOString();
+            await saveProjects(data);
+            sendJSON(res, req, { success: true, project: p });
+        } catch (e) { sendJSON(res, req, { error: e.message }, 500); }
+        return;
+    }
+
+    // ── Projects: Advance phase ───────────────────────────────────────────
+    if (pathname.match(/^\/api\/projects\/\d+\/phase$/) && req.method === 'PATCH') {
+        try {
+            const id = parseInt(pathname.split('/')[3]);
+            const body = await parseBody(req);
+            const validPhases = ['concept','design','approval','construction','handover'];
+            if (!validPhases.includes(body.phase)) { sendJSON(res, req, { error: 'Invalid phase' }, 400); return; }
+            const data = await loadProjects();
+            const p = data.projects.find(x => x.id === id);
+            if (!p) { sendJSON(res, req, { error: 'Project not found' }, 404); return; }
+            if (!p.phases_done) p.phases_done = [];
+            if (!p.phases_done.includes(p.current_phase)) p.phases_done.push(p.current_phase);
+            p.current_phase = body.phase;
+            p.updated_at = new Date().toISOString();
+            await saveProjects(data);
+            sendJSON(res, req, { success: true, project: p });
+        } catch (e) { sendJSON(res, req, { error: e.message }, 500); }
+        return;
+    }
+
+    // ── Projects: Delete ──────────────────────────────────────────────────
+    if (pathname.match(/^\/api\/projects\/\d+$/) && req.method === 'DELETE') {
+        try {
+            const id = parseInt(pathname.split('/')[3]);
+            const data = await loadProjects();
+            const idx = data.projects.findIndex(x => x.id === id);
+            if (idx === -1) { sendJSON(res, req, { error: 'Project not found' }, 404); return; }
+            data.projects.splice(idx, 1);
+            await saveProjects(data);
+            sendJSON(res, req, { success: true });
+        } catch (e) { sendJSON(res, req, { error: e.message }, 500); }
+        return;
+    }
+
+    // ── Team: List ────────────────────────────────────────────────────────
+    if (pathname === '/api/team' && req.method === 'GET') {
+        try {
+            const data = await loadTeam();
+            let members = data.members;
+            if (query.department) members = members.filter(m => m.department === query.department);
+            const page = paginate(members, query);
+            sendJSON(res, req, { members: page.data, total: page.total });
+        } catch (e) { sendJSON(res, req, { error: 'Failed to load team' }, 500); }
+        return;
+    }
+
+    // ── Team: Create ──────────────────────────────────────────────────────
+    if (pathname === '/api/team' && req.method === 'POST') {
+        try {
+            const body = await parseBody(req);
+            if (!isStr(body.name, 100))        { sendJSON(res, req, { error: 'Name is required' }, 400); return; }
+            if (!isStr(body.designation, 100)) { sendJSON(res, req, { error: 'Designation is required' }, 400); return; }
+            if (!isEmail(body.email))          { sendJSON(res, req, { error: 'Valid email is required' }, 400); return; }
+            const data = await loadTeam();
+            const newMember = {
+                id: data.nextId++,
+                name:        body.name.trim(),
+                designation: body.designation.trim(),
+                department:  isStr(body.department, 100) ? body.department.trim() : 'Design',
+                email:       body.email.trim(),
+                phone:       isStr(body.phone, 30) ? body.phone.trim() : '',
+                skills:      Array.isArray(body.skills) ? body.skills.filter(s => isStr(s, 50)).map(s => s.trim()).slice(0, 20) : [],
+                joined_date: isDate(body.joined_date) ? body.joined_date : null,
+                created_at:  new Date().toISOString()
+            };
+            data.members.push(newMember);
+            await saveTeam(data);
+            sendJSON(res, req, { success: true, member: newMember }, 201);
+        } catch (e) { sendJSON(res, req, { error: e.message }, 500); }
+        return;
+    }
+
+    // ── Team: Get single ──────────────────────────────────────────────────
+    if (pathname.match(/^\/api\/team\/\d+$/) && req.method === 'GET') {
+        try {
+            const id = parseInt(pathname.split('/')[3]);
+            const { members } = await loadTeam();
+            const m = members.find(x => x.id === id);
+            m ? sendJSON(res, req, { member: m }) : sendJSON(res, req, { error: 'Member not found' }, 404);
+        } catch (e) { sendJSON(res, req, { error: 'Failed to load member' }, 500); }
+        return;
+    }
+
+    // ── Team: Update ──────────────────────────────────────────────────────
+    if (pathname.match(/^\/api\/team\/\d+$/) && req.method === 'PUT') {
+        try {
+            const id = parseInt(pathname.split('/')[3]);
+            const body = await parseBody(req);
+            const data = await loadTeam();
+            const m = data.members.find(x => x.id === id);
+            if (!m) { sendJSON(res, req, { error: 'Member not found' }, 404); return; }
+            if (isStr(body.name, 100))        m.name        = body.name.trim();
+            if (isStr(body.designation, 100)) m.designation = body.designation.trim();
+            if (isStr(body.department, 100))  m.department  = body.department.trim();
+            if (isEmail(body.email))          m.email       = body.email.trim();
+            if (isStr(body.phone, 30))        m.phone       = body.phone.trim();
+            if (Array.isArray(body.skills))   m.skills      = body.skills.filter(s => isStr(s, 50)).map(s => s.trim()).slice(0, 20);
+            if (isDate(body.joined_date))     m.joined_date = body.joined_date;
+            await saveTeam(data);
+            sendJSON(res, req, { success: true, member: m });
+        } catch (e) { sendJSON(res, req, { error: e.message }, 500); }
+        return;
+    }
+
+    // ── Team: Delete ──────────────────────────────────────────────────────
+    if (pathname.match(/^\/api\/team\/\d+$/) && req.method === 'DELETE') {
+        try {
+            const id = parseInt(pathname.split('/')[3]);
+            const data = await loadTeam();
+            const idx = data.members.findIndex(x => x.id === id);
+            if (idx === -1) { sendJSON(res, req, { error: 'Member not found' }, 404); return; }
+            data.members.splice(idx, 1);
+            await saveTeam(data);
+            sendJSON(res, req, { success: true });
+        } catch (e) { sendJSON(res, req, { error: e.message }, 500); }
         return;
     }
 
