@@ -55,7 +55,10 @@ const DCSalary = (function () {
     // ---- API helper ----
     async function apiFetch(path, opts) {
         try {
-            const res = await fetch(path, opts);
+            const token = localStorage.getItem('dc_token');
+            const headers = Object.assign({ 'Authorization': token ? 'Bearer ' + token : '' }, (opts && opts.headers) || {});
+            const res = await fetch(path, Object.assign({}, opts, { headers }));
+            if (res.status === 401) { window.location.reload(); return null; }
             return await res.json();
         } catch (_) { return null; }
     }

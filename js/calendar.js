@@ -12,6 +12,13 @@ const DCCalendar = (function () {
     // Cached DOM elements
     let els = {};
 
+    // ---- Auth fetch helper ----
+    function authFetch(path, opts) {
+        const token = localStorage.getItem('dc_token');
+        const headers = Object.assign({ 'Authorization': token ? 'Bearer ' + token : '' }, (opts && opts.headers) || {});
+        return fetch(path, Object.assign({}, opts, { headers }));
+    }
+
     const MONTH_NAMES = [
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
@@ -102,7 +109,7 @@ const DCCalendar = (function () {
     // =========== Google Status ===========
 
     function checkGoogleStatus() {
-        fetch('/api/oauth/status')
+        authFetch('/api/oauth/status')
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 isGoogleConnected = data.authenticated;
@@ -127,7 +134,7 @@ const DCCalendar = (function () {
     }
 
     function connectGoogle() {
-        fetch('/api/oauth/init')
+        authFetch('/api/oauth/init')
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 if (data.authUrl) {
@@ -146,7 +153,7 @@ const DCCalendar = (function () {
 
     function loadCalendarData() {
         var month = currentMonth + 1; // API expects 1-indexed
-        fetch('/api/calendar/combined?month=' + month + '&year=' + currentYear)
+        authFetch('/api/calendar/combined?month=' + month + '&year=' + currentYear)
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 events = data.events || [];
@@ -403,7 +410,7 @@ const DCCalendar = (function () {
         saveBtn.textContent = 'Creating...';
         saveBtn.disabled = true;
 
-        fetch('/api/calendar/events', {
+        authFetch('/api/calendar/events', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)

@@ -27,60 +27,49 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorMsg = document.getElementById('errorMsg');
 
 
-    // Handle Login Form Submission
+    // ── Auth token helpers ─────────────────────────────────────────────────
+    function getToken()       { return localStorage.getItem('dc_token'); }
+    function setToken(t, n)   { localStorage.setItem('dc_token', t); localStorage.setItem('dc_name', n); }
+    function clearToken()     { localStorage.removeItem('dc_token'); localStorage.removeItem('dc_name'); }
+
+    // ── Handle Login Form Submission ───────────────────────────────────────
     loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
 
-        const email = document.getElementById('email').value;
+        const email    = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
         const loginBtn = document.querySelector('.login-btn');
 
-        // Show loading state with custom DC logo loader
         loginBtn.innerHTML = '<span class="dc-loader"></span>';
-        loginBtn.disabled = true;
+        loginBtn.disabled  = true;
         errorMsg.textContent = '';
 
         try {
-            const response = await fetch('login.php', {
+            const response = await fetch('/api/auth/login', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
             });
 
             const data = await response.json();
 
             if (data.success) {
-                // Update employee name from database with proper capitalization
-                employeeNameElement.textContent = capitalizeWords(data.employee_name);
-
-                // Transition to greeting page
+                setToken(data.token, data.name);
+                employeeNameElement.textContent = capitalizeWords(data.name);
                 transitionToPage(loginPage, greetingPage);
-
-                // After greeting animation, transition to dashboard
                 setTimeout(() => {
                     transitionToPage(greetingPage, dashboardPage);
                     triggerDashboardAnimations();
-                }, 3500); // Show greeting for 3.5 seconds
+                }, 3500);
             } else {
-                errorMsg.textContent = data.message || 'Invalid credentials. Please try again.';
+                errorMsg.textContent = data.error || 'Invalid credentials. Please try again.';
                 loginBtn.innerHTML = 'Login';
-                loginBtn.disabled = false;
+                loginBtn.disabled  = false;
             }
         } catch (error) {
-            // For demo without server, simulate successful login
-            console.log('Demo mode - simulating login with test credentials');
-            employeeNameElement.textContent = capitalizeWords('Rahul Sharma');
-
-            // Transition to greeting page
-            transitionToPage(loginPage, greetingPage);
-
-            // After greeting animation, transition to dashboard
-            setTimeout(() => {
-                transitionToPage(greetingPage, dashboardPage);
-                setTimeout(triggerDashboardAnimations, 500);
-            }, 3500);
+            errorMsg.textContent = 'Cannot connect to server. Please try again.';
+            loginBtn.innerHTML = 'Login';
+            loginBtn.disabled  = false;
         }
     });
 
@@ -350,15 +339,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Logout button handler
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
-            // Transition back to login page
+        logoutBtn.addEventListener('click', async function() {
+            const token = getToken();
+            if (token) {
+                try {
+                    await fetch('/api/auth/logout', {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                } catch (_) {}
+            }
+            clearToken();
             transitionToPage(dashboardPage, loginPage);
-
-            // Reset form
             loginForm.reset();
             const loginBtn = document.querySelector('.login-btn');
             loginBtn.innerHTML = 'Login';
-            loginBtn.disabled = false;
+            loginBtn.disabled  = false;
             errorMsg.textContent = '';
         });
     }
