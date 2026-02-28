@@ -387,62 +387,62 @@
 /* ==================== RESPONSIVE ==================== */
 
 @media (max-width: 768px) {
-    .lv-header {
-        padding: 12px 16px;
-    }
+    .lv-header { padding: 12px 16px; }
+    .lv-header .header-left { gap: 10px; }
+    .lv-header .header-logo { width: 60px; }
+    #leavePage .page-title { font-size: 1rem; }
+    #leavePage .back-btn { width: 36px; height: 36px; }
 
-    .lv-header .header-left {
-        gap: 10px;
-    }
-
-    .lv-header .header-logo {
-        width: 60px;
-    }
-
-    #leavePage .page-title {
-        font-size: 1rem;
-    }
-
-    #leavePage .back-btn {
-        width: 36px;
-        height: 36px;
-    }
-
-    .lv-body {
-        padding: 16px;
-    }
-
-    .lv-section {
-        padding: 18px 16px;
-    }
+    .lv-body { padding: 16px; }
+    .lv-section { padding: 18px 16px; }
 
     .lv-form-row {
         grid-template-columns: 1fr 1fr;
     }
+    .lv-form-row > *:first-child { grid-column: 1 / -1; }
 
-    .lv-form-row > *:first-child {
-        grid-column: 1 / -1;
+    /* Leave summary table: compact scroll */
+    .lv-summary-table th,
+    .lv-summary-table td { padding: 10px 12px; font-size: 0.82rem; }
+
+    /* Leave requests table: card layout */
+    .lv-requests-table { min-width: 0; }
+    .lv-requests-table thead { display: none; }
+    .lv-requests-table,
+    .lv-requests-table tbody,
+    .lv-requests-table tr,
+    .lv-requests-table td { display: block; width: 100%; }
+    .lv-requests-table tbody tr {
+        background: white;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        padding: 14px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        border: none;
     }
+    .lv-requests-table td {
+        padding: 4px 0;
+        border: none;
+        text-align: left;
+    }
+    .lv-requests-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 0.72rem;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        display: block;
+        margin-bottom: 2px;
+    }
+    .lv-requests-table td[data-label=""]::before { display: none; }
+    .lv-requests-table td[data-label=""] { margin-top: 8px; }
 }
 
 @media (max-width: 480px) {
-    .lv-header {
-        padding: 10px 12px;
-    }
-
-    .lv-body {
-        padding: 12px;
-    }
-
-    .lv-form-row {
-        grid-template-columns: 1fr;
-    }
-
-    .lv-form-row > *:first-child {
-        grid-column: auto;
-    }
-
-    .lv-apply-btn {
-        width: 100%;
-    }
+    .lv-header { padding: 10px 12px; }
+    .lv-body { padding: 12px; }
+    .lv-form-row { grid-template-columns: 1fr; }
+    .lv-form-row > *:first-child { grid-column: auto; }
+    .lv-apply-btn { width: 100%; }
 }

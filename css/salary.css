@@ -443,6 +443,42 @@
     .sal-section { padding: 18px 16px; }
 
     .sal-form-row { grid-template-columns: 1fr; }
+
+    /* Card layout for tables */
+    .sal-table thead { display: none; }
+    .sal-table,
+    .sal-table tbody,
+    .sal-table tr,
+    .sal-table td { display: block; width: 100%; }
+    .sal-table tbody tr {
+        background: white;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        padding: 14px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        border: none;
+    }
+    .sal-table td {
+        padding: 4px 0;
+        border: none;
+        text-align: left;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+        max-width: none !important;
+    }
+    .sal-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 0.72rem;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        display: block;
+        margin-bottom: 2px;
+    }
+    .sal-table td[data-label=""]::before { display: none; }
+    .sal-table td[data-label=""] { margin-top: 8px; }
 }
 
 @media (max-width: 480px) {

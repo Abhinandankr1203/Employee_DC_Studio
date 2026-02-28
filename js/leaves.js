@@ -125,14 +125,14 @@ const DCLeaves = (function () {
         if (els.emptyMsg) els.emptyMsg.style.display = 'none';
         els.requestsBody.innerHTML = leaves.map(lv => `
             <tr>
-                <td><span class="lv-type-badge">${escHtml(lv.type)}</span></td>
-                <td>${formatDate(lv.from_date)}</td>
-                <td>${formatDate(lv.to_date)}</td>
-                <td>${lv.no_days}</td>
-                <td>${escHtml(lv.reason || '—')}</td>
-                <td><span class="lv-status lv-status-${lv.status}">${capitalize(lv.status)}</span></td>
-                <td>${escHtml(lv.approver_comments || '—')}</td>
-                <td>
+                <td data-label="Type"><span class="lv-type-badge">${escHtml(lv.type)}</span></td>
+                <td data-label="From">${formatDate(lv.from_date)}</td>
+                <td data-label="To">${formatDate(lv.to_date)}</td>
+                <td data-label="Days">${lv.no_days}</td>
+                <td data-label="Reason">${escHtml(lv.reason || '—')}</td>
+                <td data-label="Status"><span class="lv-status lv-status-${lv.status}">${capitalize(lv.status)}</span></td>
+                <td data-label="Comments">${escHtml(lv.approver_comments || '—')}</td>
+                <td data-label="">
                     ${lv.status === 'pending'
                         ? `<button class="lv-cancel-btn" title="Cancel" onclick="DCLeaves.cancelLeave(${lv.id})"><i class="fas fa-times"></i></button>`
                         : '—'}

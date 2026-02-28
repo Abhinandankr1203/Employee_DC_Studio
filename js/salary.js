@@ -80,12 +80,12 @@ const DCSalary = (function () {
         if (els.payslipsEmpty) els.payslipsEmpty.style.display = 'none';
         els.payslipsBody.innerHTML = payslips.map(p => `
             <tr>
-                <td><strong>${escHtml(p.period)}</strong></td>
-                <td class="sal-gross">${formatCurrency(p.gross_salary)}</td>
-                <td class="sal-deductions">${formatCurrency(p.total_deductions)}</td>
-                <td class="sal-net-pay">${formatCurrency(p.net_pay)}</td>
-                <td><span class="sal-status sal-status-${p.status}">${capitalize(p.status)}</span></td>
-                <td>
+                <td data-label="Period"><strong>${escHtml(p.period)}</strong></td>
+                <td data-label="Gross" class="sal-gross">${formatCurrency(p.gross_salary)}</td>
+                <td data-label="Deductions" class="sal-deductions">${formatCurrency(p.total_deductions)}</td>
+                <td data-label="Net Pay" class="sal-net-pay">${formatCurrency(p.net_pay)}</td>
+                <td data-label="Status"><span class="sal-status sal-status-${p.status}">${capitalize(p.status)}</span></td>
+                <td data-label="">
                     <button class="sal-action-btn" title="Download PDF" onclick="DCSalary.downloadPayslip(${p.id})">
                         <i class="fas fa-download"></i>
                     </button>
@@ -265,12 +265,12 @@ const DCSalary = (function () {
         if (els.reimbEmpty) els.reimbEmpty.style.display = 'none';
         els.reimbBody.innerHTML = claims.map(c => `
             <tr>
-                <td>${formatDate(c.expense_date)}</td>
-                <td>${escHtml(c.project || '—')}</td>
-                <td><strong>${formatCurrency(c.amount)}</strong></td>
-                <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(c.description)}">${escHtml(c.description || '—')}</td>
-                <td><span class="sal-status sal-status-${c.status}">${capitalize(c.status)}</span></td>
-                <td>
+                <td data-label="Date">${formatDate(c.expense_date)}</td>
+                <td data-label="Project">${escHtml(c.project || '—')}</td>
+                <td data-label="Amount"><strong>${formatCurrency(c.amount)}</strong></td>
+                <td data-label="Description">${escHtml(c.description || '—')}</td>
+                <td data-label="Status"><span class="sal-status sal-status-${c.status}">${capitalize(c.status)}</span></td>
+                <td data-label="">
                     ${c.status === 'pending'
                         ? `<button class="sal-action-btn sal-delete-btn" title="Cancel Claim" onclick="DCSalary.cancelClaim(${c.id})"><i class="fas fa-times"></i></button>`
                         : '—'}

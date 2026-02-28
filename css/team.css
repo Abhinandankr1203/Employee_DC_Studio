@@ -12,40 +12,43 @@
 /* ── Page shell ──────────────────────────────────────────── */
 #teamPage .tm-container {
     min-height: 100vh;
-    background: #f4f5f7;
+    background: #fafafa;
     display: flex;
     flex-direction: column;
 }
 
 /* ── Header ──────────────────────────────────────────────── */
 .tm-header {
-    background: #1a1a1a;
-    padding: 18px 28px;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 15px 28px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
     flex-shrink: 0;
+    z-index: 10;
 }
 .tm-header-left { display: flex; align-items: center; gap: 14px; }
 .tm-back-btn {
-    background: rgba(255,255,255,.08);
-    border: 1px solid rgba(255,255,255,.15);
-    color: #fff; width: 36px; height: 36px;
-    border-radius: 8px; display: flex; align-items: center; justify-content: center;
-    cursor: pointer; font-size: 14px; transition: background .2s;
+    background: #f5f5f5;
+    border: none;
+    color: #333; width: 40px; height: 40px;
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 14px; transition: all 0.3s ease;
 }
-.tm-back-btn:hover { background: rgba(255,255,255,.16); }
-.tm-header-title { color: #fff; font-size: 20px; font-weight: 700; }
-.tm-header-sub   { color: #aaa; font-size: 12px; margin-top: 2px; }
+.tm-back-btn:hover { background: #eb7846; color: white; }
+.tm-header-title { color: #333; font-size: 1.3rem; font-weight: 600; }
+.tm-header-sub   { color: #888; font-size: 12px; margin-top: 2px; }
 .tm-add-btn {
-    background: #eb7846; color: #fff;
+    background: linear-gradient(135deg, #eb7846, #e5693a);
+    color: #fff;
     border: none; border-radius: 8px;
     padding: 9px 18px; font-size: 14px; font-weight: 600;
     cursor: pointer; display: flex; align-items: center; gap: 7px;
-    transition: background .2s;
+    transition: box-shadow .2s, transform .2s;
 }
-.tm-add-btn:hover { background: #d96a38; }
+.tm-add-btn:hover { box-shadow: 0 4px 12px rgba(235,120,70,0.4); transform: translateY(-1px); }
 
 /* ── Filter bar ──────────────────────────────────────────── */
 .tm-filters {
@@ -196,18 +199,20 @@
 .tm-modal-overlay.open .tm-modal { transform: translateY(0); }
 
 .tm-modal-header {
-    background: #1a1a1a;
+    background: white;
+    border-bottom: 1px solid #f0f0f0;
     padding: 18px 22px;
     display: flex; align-items: center; justify-content: space-between;
 }
-.tm-modal-title { font-size: 17px; font-weight: 700; color: #fff; }
+.tm-modal-title { font-size: 17px; font-weight: 700; color: #333; }
 .tm-modal-close {
-    background: rgba(255,255,255,.1); border: none;
-    color: #fff; width: 32px; height: 32px;
+    background: #f5f5f5; border: none;
+    color: #333; width: 32px; height: 32px;
     border-radius: 7px; cursor: pointer; font-size: 15px;
     display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s ease;
 }
-.tm-modal-close:hover { background: rgba(255,255,255,.2); }
+.tm-modal-close:hover { background: #eb7846; color: white; }
 .tm-form-body { padding: 22px; overflow-y: auto; flex: 1; }
 .tm-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .tm-form-group { display: flex; flex-direction: column; gap: 5px; }
@@ -221,7 +226,7 @@
     background: #fff; font-family: inherit;
     transition: border-color .2s;
 }
-.tm-form-input:focus, .tm-form-select:focus { outline: none; border-color: #eb7846; }
+.tm-form-input:focus, .tm-form-select:focus { outline: none; border-color: #eb7846; box-shadow: 0 0 0 3px rgba(235,120,70,0.1); }
 .tm-skills-input-wrap { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; border: 1.5px solid #e5e7eb; border-radius: 8px; cursor: text; min-height: 44px; }
 .tm-skills-input-wrap:focus-within { border-color: #eb7846; }
 .tm-skill-chip {
@@ -248,40 +253,54 @@
     padding: 9px 18px; font-size: 14px; font-weight: 600; cursor: pointer;
 }
 .tm-save-btn {
-    background: #eb7846; color: #fff;
+    background: linear-gradient(135deg, #eb7846, #e5693a); color: #fff;
     border: none; border-radius: 8px;
     padding: 9px 20px; font-size: 14px; font-weight: 600; cursor: pointer;
-    transition: background .2s;
+    transition: box-shadow .2s, transform .2s;
 }
-.tm-save-btn:hover { background: #d96a38; }
+.tm-save-btn:hover { box-shadow: 0 4px 12px rgba(235,120,70,0.4); transform: translateY(-1px); }
 
 /* ── Toast ───────────────────────────────────────────────── */
 .tm-toast {
     position: fixed; bottom: 24px; right: 24px;
-    background: #1a1a1a; color: #fff;
+    color: #fff;
     padding: 12px 20px; border-radius: 10px;
     font-size: 14px; font-weight: 500;
-    box-shadow: 0 4px 16px rgba(0,0,0,.2);
+    font-family: 'Poppins', sans-serif;
+    box-shadow: 0 4px 16px rgba(0,0,0,.15);
     transform: translateY(80px); opacity: 0;
     transition: all .3s; z-index: 2000;
     pointer-events: none;
 }
 .tm-toast.show { transform: translateY(0); opacity: 1; }
-.tm-toast.success { border-left: 4px solid #10b981; }
-.tm-toast.error   { border-left: 4px solid #ef4444; }
+.tm-toast.success { background: #10b981; }
+.tm-toast.error   { background: #dc2626; }
 
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 768px) {
-    .tm-header { padding: 14px 16px; }
+    .tm-header { padding: 12px 16px; }
+    .tm-header .header-logo { width: 60px; }
+    .tm-back-btn { width: 36px; height: 36px; border-radius: 8px; }
+    .tm-header-title { font-size: 1rem; }
+    .tm-header-sub { display: none; }
+    .tm-add-btn span { display: none; }
+    .tm-add-btn { padding: 9px 12px; }
+    .tm-filters { padding: 0 16px; }
+    .tm-filter-btn { padding: 12px 10px; font-size: 12px; }
     .tm-body { padding: 16px; }
+    .tm-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .tm-stat { padding: 12px 14px; }
+    .tm-stat-num { font-size: 22px; }
     .tm-grid { grid-template-columns: 1fr; }
     .tm-form-grid { grid-template-columns: 1fr; }
     .tm-form-group.full { grid-column: 1; }
-    .tm-filters { padding: 0 16px; }
-    .tm-stats { grid-template-columns: repeat(2, 1fr); }
+    .tm-modal-header { padding: 14px 18px; }
+    .tm-form-body { padding: 16px 18px; }
+    .tm-form-actions { padding: 12px 18px; }
 }
 @media (max-width: 480px) {
+    .tm-header { padding: 10px 12px; }
     .tm-modal-overlay { padding: 0; }
     .tm-modal { border-radius: 0; max-height: 100vh; }
-    .tm-add-btn span { display: none; }
+    .tm-stats { grid-template-columns: 1fr 1fr; }
 }
