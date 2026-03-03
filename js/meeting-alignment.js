@@ -7,6 +7,12 @@ const MeetingAlignment = (function() {
     // API Base URL
     const API_BASE = '/api';
 
+    // Auth header helper
+    function authHeaders(extra) {
+        const token = localStorage.getItem('dc_token');
+        return Object.assign(token ? { 'Authorization': 'Bearer ' + token } : {}, extra || {});
+    }
+
     // State
     let selectedParticipants = [];
     let currentMeetingId = null;
@@ -236,7 +242,7 @@ const MeetingAlignment = (function() {
         }
 
         try {
-            const response = await fetch(`${API_BASE}/employees/search?q=${encodeURIComponent(query)}`);
+            const response = await fetch(`${API_BASE}/employees/search?q=${encodeURIComponent(query)}`, { headers: authHeaders() });
             const data = await response.json();
 
             if (data.employees && data.employees.length > 0) {
@@ -358,7 +364,7 @@ const MeetingAlignment = (function() {
         try {
             const response = await fetch(`${API_BASE}/meetings`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: authHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify({
                     title: formData.get('title'),
                     description: formData.get('description'),
@@ -409,7 +415,7 @@ const MeetingAlignment = (function() {
         listElement.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading meetings...</div>';
 
         try {
-            const response = await fetch(`${API_BASE}/meetings?filter=${filter}`);
+            const response = await fetch(`${API_BASE}/meetings?filter=${filter}`, { headers: authHeaders() });
             const data = await response.json();
 
             if (data.meetings) {
@@ -475,7 +481,7 @@ const MeetingAlignment = (function() {
     // View meeting details
     async function viewMeetingDetails(meetingId) {
         try {
-            const response = await fetch(`${API_BASE}/meetings/${meetingId}`);
+            const response = await fetch(`${API_BASE}/meetings/${meetingId}`, { headers: authHeaders() });
             const data = await response.json();
 
             if (!data.meeting) {
@@ -557,7 +563,7 @@ const MeetingAlignment = (function() {
     // Start meeting
     async function startMeeting(meetingId) {
         try {
-            const response = await fetch(`${API_BASE}/meetings/${meetingId}`);
+            const response = await fetch(`${API_BASE}/meetings/${meetingId}`, { headers: authHeaders() });
             const data = await response.json();
 
             if (!data.meeting) {
@@ -571,7 +577,7 @@ const MeetingAlignment = (function() {
             // Update meeting status
             await fetch(`${API_BASE}/meetings/${meetingId}/status`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: authHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify({ status: 'in_progress' })
             });
 
@@ -636,7 +642,7 @@ const MeetingAlignment = (function() {
         try {
             await fetch(`${API_BASE}/meetings/${currentMeetingId}/status`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: authHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify({ status: 'completed' })
             });
         } catch (error) {

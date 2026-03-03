@@ -6,6 +6,13 @@
 const TaskTracker = (function() {
     const API_BASE = '/api';
 
+    // Auth-aware fetch wrapper
+    function apiFetch(path, opts) {
+        var token = localStorage.getItem('dc_token');
+        var headers = Object.assign(token ? { 'Authorization': 'Bearer ' + token } : {}, (opts && opts.headers) || {});
+        return fetch(path, Object.assign({}, opts, { headers }));
+    }
+
     // State
     let tasks = [];
     let employees = [];
@@ -122,7 +129,7 @@ const TaskTracker = (function() {
     // ==================== DATA ====================
 
     function loadEmployees() {
-        fetch(API_BASE + '/employees')
+        apiFetch(API_BASE + '/employees')
             .then(function(res) { return res.json(); })
             .then(function(data) {
                 employees = data.employees || [];
@@ -161,7 +168,7 @@ const TaskTracker = (function() {
 
         var qs = params.length ? '?' + params.join('&') : '';
 
-        fetch(API_BASE + '/tasks' + qs)
+        apiFetch(API_BASE + '/tasks' + qs)
             .then(function(res) { return res.json(); })
             .then(function(data) {
                 tasks = data.tasks || [];
@@ -292,7 +299,7 @@ const TaskTracker = (function() {
             url = API_BASE + '/tasks';
         }
 
-        fetch(url, {
+        apiFetch(url, {
             method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -330,7 +337,7 @@ const TaskTracker = (function() {
     function handleDeleteTask() {
         if (!deleteTargetId) return;
 
-        fetch(API_BASE + '/tasks/' + deleteTargetId, { method: 'DELETE' })
+        apiFetch(API_BASE + '/tasks/' + deleteTargetId, { method: 'DELETE' })
             .then(function(res) { return res.json(); })
             .then(function(data) {
                 if (data.success) {
@@ -350,7 +357,7 @@ const TaskTracker = (function() {
     // ==================== QUICK ACTIONS ====================
 
     function quickStatusChange(id, newStatus) {
-        fetch(API_BASE + '/tasks/' + id + '/status', {
+        apiFetch(API_BASE + '/tasks/' + id + '/status', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus })

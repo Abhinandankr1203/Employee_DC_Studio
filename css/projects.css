@@ -10,11 +10,16 @@
 }
 
 /* ── Page shell ──────────────────────────────────────────── */
+#projectTrackerPage {
+    overflow: hidden;
+}
+
 #projectTrackerPage .pr-container {
-    min-height: 100vh;
+    height: 100%;
     background: #fafafa;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 /* ── Header ──────────────────────────────────────────────── */

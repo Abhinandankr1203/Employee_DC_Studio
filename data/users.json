@@ -1,0 +1,21 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "admin@dcstudio.com",
+      "name": "Admin User",
+      "role": "admin",
+      "password_hash": "0788ae89e371cde724a07acab4bc764153420adaab803ee3d76e19bbcc6bc25f",
+      "salt": "c204c1760fbd21a31d07b270c1112fc4"
+    },
+    {
+      "id": 2,
+      "email": "stakeholder@dcstudio.com",
+      "name": "Stakeholder",
+      "role": "viewer",
+      "password_hash": "acf338b869b0c499331425d1c93d065858796e3a56b96e7d1c9998233e299c8e",
+      "salt": "21a3b67f8275d550cc3f28e97aa267a3"
+    }
+  ],
+  "nextId": 3
+}
