@@ -10,11 +10,16 @@
 }
 
 /* ── Page shell ──────────────────────────────────────────── */
+#teamPage {
+    overflow: hidden;
+}
+
 #teamPage .tm-container {
-    min-height: 100vh;
+    height: 100%;
     background: #fafafa;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 /* ── Header ──────────────────────────────────────────────── */
@@ -181,8 +186,9 @@
     position: fixed; inset: 0;
     background: rgba(0,0,0,.55);
     z-index: 1000;
-    display: flex; align-items: center; justify-content: center;
+    display: flex; align-items: flex-start; justify-content: center;
     padding: 20px;
+    overflow-y: auto;
     opacity: 0; pointer-events: none;
     transition: opacity .25s;
 }
@@ -193,6 +199,7 @@
     max-height: 90vh;
     display: flex; flex-direction: column;
     overflow: hidden;
+    margin: auto;
     transform: translateY(20px);
     transition: transform .25s;
 }
@@ -203,6 +210,7 @@
     border-bottom: 1px solid #f0f0f0;
     padding: 18px 22px;
     display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
 }
 .tm-modal-title { font-size: 17px; font-weight: 700; color: #333; }
 .tm-modal-close {
