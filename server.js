@@ -20,7 +20,7 @@ const { google } = require('googleapis');
 // ── Config ─────────────────────────────────────────────────────────────────
 const PORT           = parseInt(process.env.PORT)   || 8000;
 const ADMIN_EMAIL    = process.env.ADMIN_EMAIL       || 'ak53429651201@gmail.com';
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN    || `http://localhost:${PORT}`;
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN    || '*';
 
 const SCOPES = [
     'https://www.googleapis.com/auth/calendar',
