@@ -399,7 +399,19 @@
 
 /* ── New/Edit Project form modal ─────────────────────────── */
 .pr-form-modal .pr-modal { max-width: 620px; }
-.pr-form-body { padding: 24px; overflow-y: auto; flex: 1; }
+
+/* form sits between .pr-modal flex container and .pr-form-body —
+   must itself be a flex child + flex container so inner scroll works */
+#prForm {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.pr-form-body { padding: 24px; overflow-y: auto; flex: 1; min-height: 0; }
+.pr-modal-foot { flex-shrink: 0; }
 .pr-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .pr-form-group { display: flex; flex-direction: column; gap: 6px; }
 .pr-form-group.full { grid-column: 1/-1; }
