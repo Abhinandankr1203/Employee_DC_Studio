@@ -4,10 +4,9 @@ const DCTeam = (function () {
 
     const DEPT_CLASS = {
         'Design':              'tm-dept-Design',
-        'Civil & Structural':  'tm-dept-Civil-Structural',
-        'Interior':            'tm-dept-Interior',
         'Project Management':  'tm-dept-Project-Management',
-        'Administration':      'tm-dept-Administration'
+        'Administration':      'tm-dept-Administration',
+        'Accounts':            'tm-dept-Accounts'
     };
 
     let allMembers  = [];
@@ -54,7 +53,11 @@ const DCTeam = (function () {
             backBtn.addEventListener('click', function () {
                 var tp = document.getElementById('teamPage');
                 var db = document.getElementById('dashboardPage');
-                if (tp && db) { tp.classList.remove('active'); db.classList.add('active'); }
+                if (tp && db) {
+                    tp.classList.remove('active');
+                    db.classList.add('active');
+                    if (typeof DCNotifications !== 'undefined') DCNotifications.check();
+                }
             });
         }
 

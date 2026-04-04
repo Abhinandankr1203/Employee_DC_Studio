@@ -2,38 +2,152 @@
   "employees": [
     {
       "id": 1,
+      "user_id": 1,
       "name": "Admin User",
-      "email": "ak53429651201@gmail.com",
+      "email": "admin@dcstudio.com",
       "department": "Management",
-      "designation": "Admin"
+      "designation": "Managing Director",
+      "salary": 150000,
+      "joining_date": "2018-01-01",
+      "address": {
+        "current": {
+          "mobile": "9876543210",
+          "city": "New Delhi",
+          "state": "Delhi"
+        }
+      }
     },
     {
       "id": 2,
-      "name": "Priya Patel",
-      "email": "priya@dcstudio.com",
-      "department": "Development",
-      "designation": "Full Stack Developer"
+      "user_id": 2,
+      "name": "Rahul Sharma",
+      "email": "rahul@dcstudio.com",
+      "department": "Design",
+      "designation": "Principal Architect",
+      "salary": 120000,
+      "joining_date": "2019-03-01",
+      "isReportingManager": true,
+      "address": {
+        "current": {
+          "mobile": "9876543211",
+          "city": "Mumbai",
+          "state": "Maharashtra"
+        }
+      }
     },
     {
       "id": 3,
-      "name": "Amit Kumar",
-      "email": "amit@dcstudio.com",
+      "user_id": 3,
+      "name": "Priya Patel",
+      "email": "priya@dcstudio.com",
       "department": "Design",
-      "designation": "UI/UX Designer"
+      "designation": "Senior Architect",
+      "salary": 75000,
+      "joining_date": "2020-07-15",
+      "reportingManagerId": 2,
+      "reportingManagerName": "Rahul Sharma",
+      "address": {
+        "current": {
+          "mobile": "9876543212",
+          "city": "Pune",
+          "state": "Maharashtra"
+        }
+      }
     },
     {
       "id": 4,
-      "name": "Sneha Reddy",
-      "email": "sneha@dcstudio.com",
-      "department": "Marketing",
-      "designation": "Marketing Manager"
+      "user_id": 4,
+      "name": "Amit Kumar",
+      "email": "amit@dcstudio.com",
+      "department": "Design",
+      "designation": "UI/UX Designer",
+      "salary": 65000,
+      "joining_date": "2021-01-10",
+      "reportingManagerId": 2,
+      "reportingManagerName": "Rahul Sharma",
+      "address": {
+        "current": {
+          "mobile": "9876543213",
+          "city": "Bengaluru",
+          "state": "Karnataka"
+        }
+      }
     },
     {
       "id": 5,
+      "user_id": 5,
+      "name": "Sneha Reddy",
+      "email": "sneha@dcstudio.com",
+      "department": "Interior Design",
+      "designation": "Interior Designer",
+      "salary": 60000,
+      "joining_date": "2021-06-01",
+      "reportingManagerId": 2,
+      "reportingManagerName": "Rahul Sharma",
+      "address": {
+        "current": {
+          "mobile": "9876543214",
+          "city": "Hyderabad",
+          "state": "Telangana"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "user_id": 6,
       "name": "Vikram Singh",
       "email": "vikram@dcstudio.com",
-      "department": "Development",
-      "designation": "Backend Developer"
+      "department": "Structural Engineering",
+      "designation": "Structural Engineer",
+      "salary": 70000,
+      "joining_date": "2020-02-20",
+      "reportingManagerId": 2,
+      "reportingManagerName": "Rahul Sharma",
+      "address": {
+        "current": {
+          "mobile": "9876543215",
+          "city": "Jaipur",
+          "state": "Rajasthan"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "user_id": 7,
+      "name": "Meera Joshi",
+      "email": "meera@dcstudio.com",
+      "department": "Interior Design",
+      "designation": "Senior Interior Designer",
+      "salary": 68000,
+      "joining_date": "2021-09-01",
+      "reportingManagerId": 2,
+      "reportingManagerName": "Rahul Sharma",
+      "address": {
+        "current": {
+          "mobile": "9876543216",
+          "city": "Ahmedabad",
+          "state": "Gujarat"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "user_id": 8,
+      "name": "Suresh Nair",
+      "email": "suresh@dcstudio.com",
+      "department": "Project Management",
+      "designation": "Project Manager",
+      "salary": 90000,
+      "joining_date": "2019-11-15",
+      "reportingManagerId": 2,
+      "reportingManagerName": "Rahul Sharma",
+      "address": {
+        "current": {
+          "mobile": "9876543217",
+          "city": "Chennai",
+          "state": "Tamil Nadu"
+        }
+      }
     }
   ]
 }

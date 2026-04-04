@@ -436,6 +436,10 @@ var DCReports = (function () {
         var modal = document.getElementById('cameraModal');
         modal.classList.add('active');
 
+        // Set container aspect ratio to match selected orientation
+        var container = document.getElementById('cameraVideoContainer');
+        container.style.aspectRatio = (cameraOrientation === 'portrait') ? '3/4' : '4/3';
+
         // Reset to live view
         document.getElementById('cameraVideoContainer').style.display = '';
         document.getElementById('cameraPreview').style.display = 'none';
@@ -456,15 +460,12 @@ var DCReports = (function () {
         var constraints = {
             video: {
                 facingMode: { ideal: facingMode },
-                width: { ideal: isPortrait ? 1080 : 1920, min: 640 },
-                height: { ideal: isPortrait ? 1920 : 1080, min: 480 }
+                width:       { ideal: isPortrait ? 960  : 1280, min: 480 },
+                height:      { ideal: isPortrait ? 1280 : 960,  min: 360 },
+                aspectRatio: { ideal: isPortrait ? 3 / 4 : 4 / 3 }
             },
             audio: false
         };
-
-        if (isMobile) {
-            constraints.video.aspectRatio = isPortrait ? 9 / 16 : 16 / 9;
-        }
 
         navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {
             cameraStream = stream;
@@ -493,9 +494,27 @@ var DCReports = (function () {
     function capturePhoto() {
         var video = document.getElementById('cameraVideo');
         var canvas = document.getElementById('cameraCanvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
+        var vw = video.videoWidth, vh = video.videoHeight;
+
+        // Crop to 4:3 from the centre of the captured frame
+        var targetRatio = 4 / 3;
+        var srcW, srcH, srcX, srcY;
+        if (vw / vh > targetRatio) {
+            // Video is wider than 4:3 — crop sides
+            srcH = vh;
+            srcW = Math.round(vh * targetRatio);
+            srcX = Math.round((vw - srcW) / 2);
+            srcY = 0;
+        } else {
+            // Video is taller than 4:3 — crop top/bottom
+            srcW = vw;
+            srcH = Math.round(vw / targetRatio);
+            srcX = 0;
+            srcY = Math.round((vh - srcH) / 2);
+        }
+        canvas.width  = srcW;
+        canvas.height = srcH;
+        canvas.getContext('2d').drawImage(video, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
 
         var dataUrl = canvas.toDataURL('image/jpeg', 0.8);
 
@@ -1223,9 +1242,9 @@ var DCReports = (function () {
     // ── Item Row ───────────────────────────────────────────
     // Two-column: left = number + label + value text, right = photo or placeholder
     function pdfItemRow(doc, numStr, label, valueLines, images, y) {
-        y = pdfChk(doc, y, 66);
+        y = pdfChk(doc, y, 72);
 
-        var imgX = 118, imgW = 78, imgH = 52, imgY = y;
+        var imgX = 118, imgW = 78, imgH = 58, imgY = y;
 
         // Large item number
         doc.setFont('helvetica', 'bold');
@@ -1293,15 +1312,38 @@ var DCReports = (function () {
         ];
         var y = pdfCover(doc, 'Site Survey', grps);
 
+        function ssSurveyItemFilled(item) {
+            var el = document.querySelector('[data-field-id="' + item.id + '"]');
+            if (el && el.value.trim()) return true;
+            if (item.fields) {
+                var anyField = item.fields.some(function (f) {
+                    var fEl = document.querySelector('[data-field-id="' + f.id + '"]');
+                    return fEl && fEl.value.trim();
+                });
+                if (anyField) return true;
+                var cont = document.getElementById('fields-' + item.id);
+                if (cont) {
+                    var extras = cont.querySelectorAll('[data-field-id]');
+                    for (var xi = 0; xi < extras.length; xi++) {
+                        if (extras[xi].value.trim()) return true;
+                    }
+                }
+            }
+            return (mediaMap[item.id] || []).length > 0;
+        }
+
         [
             { letter: 'A', title: 'Floor Item',  items: SITE_SURVEY_FLOOR_ITEMS },
             { letter: 'B', title: 'Wall Item',   items: SITE_SURVEY_WALL_ITEMS  },
             { letter: 'C', title: 'Other Item',  items: SITE_SURVEY_OTHER_ITEMS }
         ].forEach(function (sec) {
+            var filledItems = sec.items.filter(ssSurveyItemFilled);
+            if (!filledItems.length) return;
+
             y = pdfChk(doc, y, 30);
             y = pdfSectionHead(doc, sec.letter, sec.title, y);
 
-            sec.items.forEach(function (item, idx) {
+            filledItems.forEach(function (item, idx) {
                 var num = (idx + 1 < 10 ? '0' : '') + (idx + 1);
                 var vals = [];
 
@@ -1348,16 +1390,29 @@ var DCReports = (function () {
         ];
         var y = pdfCover(doc, 'Quality Checklist', grps);
 
+        function qcItemFilled(item) {
+            var pctEl = document.querySelector('[data-field-id="' + item.id + '-pct"]');
+            var remEl = document.querySelector('[data-field-id="' + item.id + '-remarks"]');
+            return (pctEl && pctEl.value.trim()) || (remEl && remEl.value.trim()) || (mediaMap[item.id] || []).length > 0;
+        }
+
         QUALITY_CHECKLIST_SECTIONS.forEach(function (sec, si) {
+            // Skip entire section if no item in any subsection is filled
+            var secHasContent = sec.subsections.some(function (sub) {
+                return sub.items.some(qcItemFilled);
+            });
+            if (!secHasContent) return;
+
             var letter = String(si + 1);
             y = pdfChk(doc, y, 30);
             y = pdfSectionHead(doc, letter, sec.name, y);
 
             sec.subsections.forEach(function (sub) {
-                if (!sub.items.length) return;
+                var filledItems = sub.items.filter(qcItemFilled);
+                if (!filledItems.length) return;
                 y = pdfSubHead(doc, sub.name, y);
 
-                sub.items.forEach(function (item, ii) {
+                filledItems.forEach(function (item, ii) {
                     var num = (ii + 1 < 10 ? '0' : '') + (ii + 1);
                     var pctEl = document.querySelector('[data-field-id="' + item.id + '-pct"]');
                     var remEl = document.querySelector('[data-field-id="' + item.id + '-remarks"]');
@@ -1388,21 +1443,27 @@ var DCReports = (function () {
         ];
         var y = pdfCover(doc, 'Site Progress Report', grps);
 
-        y = pdfChk(doc, y, 30);
-        y = pdfSectionHead(doc, 'P', 'Progress Items', y);
-
-        collectProgressItems().forEach(function (item, idx) {
-            var num = (idx + 1 < 10 ? '0' : '') + (idx + 1);
-            var vals = [];
-            if (item.description) {
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(8);
-                vals = vals.concat(doc.splitTextToSize(item.description, 84));
-            }
-            if (item.floorArea) vals.push('Floor/Area: ' + item.floorArea);
-            if (item.location)  vals.push('Location: '   + item.location);
-            y = pdfItemRow(doc, num, 'Progress Item ' + (idx + 1), vals, item.images || [], y);
+        var filledProgress = collectProgressItems().filter(function (item) {
+            return item.description || item.floorArea || item.location || (item.images && item.images.length > 0);
         });
+
+        if (filledProgress.length) {
+            y = pdfChk(doc, y, 30);
+            y = pdfSectionHead(doc, 'P', 'Progress Items', y);
+
+            filledProgress.forEach(function (item, idx) {
+                var num = (idx + 1 < 10 ? '0' : '') + (idx + 1);
+                var vals = [];
+                if (item.description) {
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(8);
+                    vals = vals.concat(doc.splitTextToSize(item.description, 84));
+                }
+                if (item.floorArea) vals.push('Floor/Area: ' + item.floorArea);
+                if (item.location)  vals.push('Location: '   + item.location);
+                y = pdfItemRow(doc, num, 'Progress Item ' + (idx + 1), vals, item.images || [], y);
+            });
+        }
     }
 
     // ── HTTP Helpers ───────────────────────────────────────

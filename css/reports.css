@@ -29,7 +29,8 @@
 }
 
 .reports-header .header-logo {
-    height: 36px;
+    width: 80px;
+    height: auto;
 }
 
 .reports-header .page-title {
@@ -443,13 +444,14 @@
 }
 
 .item-gallery .thumb {
-    width: 64px;
-    height: 64px;
+    width: 80px;
+    aspect-ratio: 4 / 3;
     border-radius: 8px;
     overflow: hidden;
     position: relative;
     border: 1px solid #e5e7eb;
     cursor: pointer;
+    flex-shrink: 0;
 }
 
 .item-gallery .thumb img {

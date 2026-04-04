@@ -2,11 +2,10 @@
 
 /* ── Department colour tokens ────────────────────────────── */
 :root {
-    --dept-design:   #3b82f6;
-    --dept-civil:    #f59e0b;
-    --dept-interior: #8b5cf6;
-    --dept-pm:       #10b981;
-    --dept-admin:    #6b7280;
+    --dept-design:    #3b82f6;
+    --dept-pm:        #10b981;
+    --dept-admin:     #6b7280;
+    --dept-accounts:  #f43f5e;
 }
 
 /* ── Page shell ──────────────────────────────────────────── */
@@ -45,6 +44,7 @@
 .tm-back-btn:hover { background: #eb7846; color: white; }
 .tm-header-title { color: #333; font-size: 1.3rem; font-weight: 600; }
 .tm-header-sub   { color: #888; font-size: 12px; margin-top: 2px; }
+.tm-header .header-logo { width: 80px; height: auto; }
 .tm-add-btn {
     background: linear-gradient(135deg, #eb7846, #e5693a);
     color: #fff;
@@ -91,9 +91,10 @@
 .tm-stat-num  { font-size: 26px; font-weight: 800; color: #111827; }
 .tm-stat-lbl  { font-size: 12px; color: #6b7280; margin-top: 2px; }
 .tm-stat[data-dept="Design"]              { border-left-color: var(--dept-design); }
-.tm-stat[data-dept="Civil & Structural"]  { border-left-color: var(--dept-civil); }
-.tm-stat[data-dept="Interior"]            { border-left-color: var(--dept-interior); }
+
 .tm-stat[data-dept="Project Management"]  { border-left-color: var(--dept-pm); }
+.tm-stat[data-dept="Administration"]      { border-left-color: var(--dept-admin); }
+.tm-stat[data-dept="Accounts"]            { border-left-color: var(--dept-accounts); }
 
 .tm-grid {
     display: grid;
@@ -124,10 +125,10 @@
     flex-shrink: 0; text-transform: uppercase;
 }
 .tm-dept-Design              .tm-initials { background: var(--dept-design); }
-.tm-dept-Civil-Structural    .tm-initials { background: var(--dept-civil); }
-.tm-dept-Interior            .tm-initials { background: var(--dept-interior); }
+
 .tm-dept-Project-Management  .tm-initials { background: var(--dept-pm); }
 .tm-dept-Administration      .tm-initials { background: var(--dept-admin); }
+.tm-dept-Accounts            .tm-initials { background: var(--dept-accounts); }
 
 .tm-card-info { flex: 1; min-width: 0; }
 .tm-card-name { font-size: 16px; font-weight: 700; color: #111827; }
@@ -138,10 +139,10 @@
     padding: 2px 8px; border-radius: 20px;
 }
 .tm-dept-Design              .tm-dept-badge { background: #dbeafe; color: #1d4ed8; }
-.tm-dept-Civil-Structural    .tm-dept-badge { background: #fef3c7; color: #92400e; }
-.tm-dept-Interior            .tm-dept-badge { background: #ede9fe; color: #5b21b6; }
+
 .tm-dept-Project-Management  .tm-dept-badge { background: #d1fae5; color: #065f46; }
 .tm-dept-Administration      .tm-dept-badge { background: #f3f4f6; color: #374151; }
+.tm-dept-Accounts            .tm-dept-badge { background: #ffe4e6; color: #be123c; }
 
 /* contact row */
 .tm-contacts { display: flex; flex-direction: column; gap: 6px; }

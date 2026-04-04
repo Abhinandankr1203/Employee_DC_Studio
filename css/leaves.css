@@ -301,6 +301,42 @@
     background: #fafafa;
 }
 
+/* Month group hidden rows */
+.lv-row-hidden { display: none !important; }
+
+/* Month group header row */
+.lv-month-header-row td {
+    background: #fff8f5;
+    border-top: 2px solid #f0e8e0;
+    padding: 10px 16px !important;
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.9rem;
+    color: #1a1a1a;
+}
+.lv-month-header-row:hover td { background: #fff0e8; }
+.lv-month-chevron {
+    display: inline-block;
+    margin-right: 8px;
+    font-size: 11px;
+    color: #eb7846;
+    transition: transform 0.22s;
+    transform: rotate(0deg);
+}
+.lv-month-body { display: none; }
+.lv-month-body.lv-month-expanded { display: table-row-group; }
+
+.lv-month-count {
+    margin-left: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #eb7846;
+    background: #fff0e8;
+    border: 1px solid #eb7846;
+    border-radius: 10px;
+    padding: 1px 8px;
+}
+
 /* Empty state - matches tt-empty */
 .lv-empty {
     text-align: center;
@@ -412,6 +448,11 @@
     .lv-requests-table tbody,
     .lv-requests-table tr,
     .lv-requests-table td { display: block; width: 100%; }
+    /* Month header rows stay full-width, not card-style */
+    .lv-requests-table .lv-month-header-row { display: block; }
+    .lv-requests-table .lv-month-header-row td { border-radius: 8px; }
+    /* Hidden rows must always be hidden regardless of display:block override */
+    .lv-requests-table tr.lv-row-hidden { display: none !important; }
     .lv-requests-table tbody tr {
         background: white;
         border-radius: 10px;
@@ -420,6 +461,7 @@
         box-shadow: 0 2px 6px rgba(0,0,0,0.06);
         border: none;
     }
+    .lv-requests-table .lv-month-header-row { box-shadow: none; padding: 0; border-radius: 0; background: transparent; }
     .lv-requests-table td {
         padding: 4px 0;
         border: none;
@@ -437,6 +479,7 @@
     }
     .lv-requests-table td[data-label=""]::before { display: none; }
     .lv-requests-table td[data-label=""] { margin-top: 8px; }
+    .lv-month-header-row td::before { display: none; }
 }
 
 @media (max-width: 480px) {

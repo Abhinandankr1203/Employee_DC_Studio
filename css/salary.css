@@ -219,6 +219,18 @@
 .sal-status-rejected  { background: #fef2f2; color: #dc2626; }
 .sal-status-cancelled { background: #f9fafb; color: #6b7280; }
 
+.sal-category-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+.sal-cat-food    { background: #fff7ed; color: #c2410c; }
+.sal-cat-stay    { background: #eff6ff; color: #1d4ed8; }
+.sal-cat-travel  { background: #f0fdf4; color: #15803d; }
+.sal-cat-others  { background: #f5f3ff; color: #6d28d9; }
+
 /* Action buttons */
 .sal-action-btn {
     width: 32px;
@@ -400,6 +412,101 @@
     box-shadow: none;
 }
 
+/* ---- Cancel button (secondary) ---- */
+.sal-cancel-btn {
+    padding: 10px 22px;
+    border: 1.5px solid #e0e0e0;
+    background: white;
+    color: #555;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.2s;
+}
+.sal-cancel-btn:hover {
+    background: #f5f5f5;
+    border-color: #ccc;
+    color: #333;
+}
+
+/* ---- Assign Task modal action row ---- */
+.pr-task-modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #f0f0f0;
+}
+.pr-task-modal-actions .sal-submit-btn { flex: 1; justify-content: center; }
+.pr-task-modal-actions .sal-cancel-btn { flex-shrink: 0; }
+
+/* ---- Multi-bill form ---- */
+.sal-add-bill-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 16px;
+    border: 1.5px solid #eb7846;
+    background: #fff7f3;
+    color: #eb7846;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.sal-add-bill-btn:hover {
+    background: #eb7846;
+    color: white;
+}
+
+.sal-bill-row {
+    background: #fafafa;
+    border: 1.5px solid #f0f0f0;
+    border-radius: 10px;
+    padding: 18px 18px 12px;
+    margin-bottom: 14px;
+    transition: border-color 0.2s;
+}
+.sal-bill-row:hover { border-color: #e0e0e0; }
+
+.sal-bill-row-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+.sal-bill-row-num {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #eb7846;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.sal-bill-remove-btn {
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 6px;
+    background: #fef2f2;
+    color: #dc2626;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+.sal-bill-remove-btn:hover {
+    background: #dc2626;
+    color: white;
+}
+
 /* ==================== TOAST ==================== */
 
 .sal-toast {
@@ -427,7 +534,48 @@
 .sal-toast.success { background: #10b981; }
 .sal-toast.error   { background: #dc2626; }
 
+/* ── Month group hidden rows ── */
+.sal-row-hidden { display: none !important; }
+
+/* ── Month group rows (reimbursement history) ── */
+.sal-month-header-row td {
+    background: #fff8f5;
+    border-top: 2px solid #f0e8e0;
+    padding: 10px 16px !important;
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.9rem;
+    color: #1a1a1a;
+}
+.sal-month-header-row:hover td { background: #fff0e8; }
+.sal-month-chevron {
+    display: inline-block;
+    margin-right: 8px;
+    font-size: 11px;
+    color: #eb7846;
+    transition: transform 0.22s;
+}
+.sal-month-body { display: none; }
+.sal-month-body.sal-month-expanded { display: table-row-group; }
+.sal-month-count {
+    margin-left: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #eb7846;
+    background: #fff0e8;
+    border: 1px solid #eb7846;
+    border-radius: 10px;
+    padding: 1px 8px;
+}
+
 /* ==================== RESPONSIVE ==================== */
+
+@media (max-width: 768px) {
+    .sal-add-bill-btn { font-size: 0.78rem; padding: 6px 12px; }
+    .sal-bill-row { padding: 14px 14px 10px; }
+    .pr-task-modal-actions { flex-direction: column; }
+    .pr-task-modal-actions .sal-cancel-btn { width: 100%; text-align: center; }
+}
 
 @media (max-width: 768px) {
     .sal-header { padding: 12px 16px; }
@@ -450,6 +598,13 @@
     .sal-table tbody,
     .sal-table tr,
     .sal-table td { display: block; width: 100%; }
+    /* Month header rows stay full-width, not card-style */
+    .sal-table .sal-month-header-row { display: block; }
+    .sal-table .sal-month-header-row td { border-radius: 8px; }
+    .sal-table .sal-month-header-row { box-shadow: none; padding: 0; border-radius: 0; background: transparent; }
+    /* Hidden rows must always be hidden regardless of display:block override */
+    .sal-table tr.sal-row-hidden { display: none !important; }
+    .sal-month-header-row td::before { display: none; }
     .sal-table tbody tr {
         background: white;
         border-radius: 10px;

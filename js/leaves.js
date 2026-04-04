@@ -5,16 +5,34 @@ const DCLeaves = (function () {
     // ---- State ----
     let initialized = false;
 
+    function isAdminUser() { return localStorage.getItem('dc_role') === 'admin'; }
+
     // ---- DOM refs ----
     let els = {};
 
     // ---- Init ----
-    function init() {
+    async function init() {
         cacheElements();
         bindEvents();
+        // Always sync role from server before rendering admin UI
+        await syncRole();
+        applyAdminLayout();
         loadSummary();
         loadRequests();
         initialized = true;
+    }
+
+    async function syncRole() {
+        try {
+            const data = await apiFetch('/api/auth/me');
+            if (data && data.role) {
+                localStorage.setItem('dc_role', data.role);
+            }
+        } catch (_) {}
+    }
+
+    function applyAdminLayout() {
+        // All users (including admin) see their own leave data and can apply
     }
 
     function destroy() {
@@ -123,22 +141,60 @@ const DCLeaves = (function () {
             return;
         }
         if (els.emptyMsg) els.emptyMsg.style.display = 'none';
-        els.requestsBody.innerHTML = leaves.map(lv => `
-            <tr>
-                <td data-label="Type"><span class="lv-type-badge">${escHtml(lv.type)}</span></td>
-                <td data-label="From">${formatDate(lv.from_date)}</td>
-                <td data-label="To">${formatDate(lv.to_date)}</td>
-                <td data-label="Days">${lv.no_days}</td>
-                <td data-label="Reason">${escHtml(lv.reason || '—')}</td>
-                <td data-label="Status"><span class="lv-status lv-status-${lv.status}">${capitalize(lv.status)}</span></td>
-                <td data-label="Comments">${escHtml(lv.approver_comments || '—')}</td>
-                <td data-label="">
-                    ${lv.status === 'pending'
-                        ? `<button class="lv-cancel-btn" title="Cancel" onclick="DCLeaves.cancelLeave(${lv.id})"><i class="fas fa-times"></i></button>`
-                        : '—'}
+
+        // Group by month of from_date
+        const groups = {};
+        const groupOrder = [];
+        leaves.forEach(lv => {
+            const d = lv.from_date ? new Date(lv.from_date + 'T00:00:00') : new Date();
+            const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+            const label = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+            if (!groups[key]) { groups[key] = { label, items: [] }; groupOrder.push(key); }
+            groups[key].items.push(lv);
+        });
+
+        const nowKey = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0');
+
+        let html = '';
+        groupOrder.forEach(key => {
+            const g = groups[key];
+            const isExpanded = key === nowKey || groupOrder.length === 1;
+            const chevId = 'lv-chev-' + key;
+            const hidden = isExpanded ? '' : ' lv-row-hidden';
+            html += `
+            <tr class="lv-month-header-row" onclick="DCLeaves._toggleMonth('${key}','${chevId}')">
+                <td colspan="8">
+                    <span class="lv-month-chevron" id="${chevId}" style="transform:rotate(${isExpanded ? 90 : 0}deg)">&#9654;</span>
+                    <strong>${escHtml(g.label)}</strong>
+                    <span class="lv-month-count">${g.items.length} request${g.items.length !== 1 ? 's' : ''}</span>
                 </td>
-            </tr>
-        `).join('');
+            </tr>`;
+            g.items.forEach(lv => {
+                const actionCell = lv.status === 'pending'
+                    ? `<button class="lv-cancel-btn" title="Cancel" onclick="event.stopPropagation();DCLeaves.cancelLeave(${lv.id})"><i class="fas fa-times"></i></button>`
+                    : '—';
+                html += `
+                <tr class="lv-month-item${hidden}" data-group="${key}">
+                    <td data-label="Type"><span class="lv-type-badge">${escHtml(lv.type)}</span></td>
+                    <td data-label="From">${formatDate(lv.from_date)}</td>
+                    <td data-label="To">${formatDate(lv.to_date)}</td>
+                    <td data-label="Days">${lv.no_days}</td>
+                    <td data-label="Reason">${escHtml(lv.reason || '—')}</td>
+                    <td data-label="Status"><span class="lv-status lv-status-${lv.status}">${capitalize(lv.status)}</span></td>
+                    <td data-label="Comments">${escHtml(lv.approver_comments || '—')}</td>
+                    <td data-label="">${actionCell}</td>
+                </tr>`;
+            });
+        });
+        els.requestsBody.innerHTML = html;
+    }
+
+    function _toggleMonth(key, chevId) {
+        const chev = document.getElementById(chevId);
+        const rows = els.requestsBody ? els.requestsBody.querySelectorAll('tr[data-group="' + key + '"]') : [];
+        const isHidden = rows.length > 0 && rows[0].classList.contains('lv-row-hidden');
+        rows.forEach(function(r) { r.classList.toggle('lv-row-hidden', !isHidden); });
+        if (chev) chev.style.transform = 'rotate(' + (isHidden ? 90 : 0) + 'deg)';
     }
 
     // ---- Apply for leave ----
@@ -177,6 +233,48 @@ const DCLeaves = (function () {
             loadRequests();
         } else {
             showToast((data && data.error) || 'Failed to apply. Please try again.', 'error');
+        }
+    }
+
+    // ---- Admin: Approve / Reject leave ----
+    function approveLeave(id) {
+        openApprovalModal({
+            title: 'Approve Leave Request',
+            msg: 'Approve this leave request? The employee will be notified.',
+            action: 'approve',
+            commentLabel: 'Approval Comments (optional)',
+            onConfirm: function (comments) {
+                closeApprovalModal();
+                doLeaveAction(id, 'approved', comments);
+            }
+        });
+    }
+
+    function rejectLeave(id) {
+        openApprovalModal({
+            title: 'Reject Leave Request',
+            msg: 'Reject this leave request? Please provide a reason for the employee.',
+            action: 'reject',
+            commentLabel: 'Rejection Reason (optional)',
+            onConfirm: function (comments) {
+                closeApprovalModal();
+                doLeaveAction(id, 'rejected', comments);
+            }
+        });
+    }
+
+    async function doLeaveAction(id, status, comments) {
+        const data = await apiFetch(`/api/leaves/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status, approver_comments: comments })
+        });
+        if (data && data.success) {
+            showToast(status === 'approved' ? 'Leave approved!' : 'Leave rejected.', 'success');
+            loadSummary();
+            loadRequests();
+        } else {
+            showToast((data && data.error) || 'Action failed. Please try again.', 'error');
         }
     }
 
@@ -226,5 +324,5 @@ const DCLeaves = (function () {
     }
 
     // ---- Public API ----
-    return { init, destroy, cancelLeave };
+    return { init, destroy, cancelLeave, approveLeave, rejectLeave, _toggleMonth };
 })();

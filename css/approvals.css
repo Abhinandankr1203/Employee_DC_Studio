@@ -1,0 +1,231 @@
+/* ===== APPROVALS PAGE ===== */
+
+#approvalPage { display: none; flex-direction: column; height: 100vh; background: #f5f5f5; }
+#approvalPage.active { display: flex; }
+
+/* ── Header ── */
+.appr-header {
+    display: flex; align-items: center; gap: 14px;
+    background: #fff; padding: 14px 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08); flex-shrink: 0;
+}
+.appr-header .back-btn {
+    background: #f5f5f5; border: none; border-radius: 50%;
+    width: 38px; height: 38px; cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    color: #333; transition: background .2s;
+}
+.appr-header .back-btn:hover { background: #eb7846; color: #fff; }
+.appr-header-logo { height: 36px; }
+.appr-header-title { font-size: 20px; font-weight: 700; color: #1a1a1a; flex: 1; }
+
+/* ── Tabs ── */
+.appr-tabs-bar {
+    display: flex; background: #fff; border-bottom: 2px solid #eee;
+    overflow-x: auto; flex-shrink: 0; scrollbar-width: none;
+}
+.appr-tabs-bar::-webkit-scrollbar { display: none; }
+.appr-tab {
+    padding: 13px 20px; font-size: 14px; font-weight: 600; color: #666;
+    border: none; background: none; cursor: pointer; white-space: nowrap;
+    border-bottom: 3px solid transparent; margin-bottom: -2px;
+    display: flex; align-items: center; gap: 7px; transition: color .2s;
+}
+.appr-tab:hover { color: #eb7846; }
+.appr-tab.active { color: #eb7846; border-bottom-color: #eb7846; }
+.appr-tab-count {
+    background: #eb7846; color: #fff;
+    font-size: 11px; font-weight: 700; border-radius: 10px;
+    padding: 1px 6px; min-width: 18px; text-align: center;
+}
+.appr-tab-count.zero { background: #ccc; }
+
+/* ── Filter bar ── */
+.appr-filter-bar {
+    display: flex; gap: 8px; padding: 14px 24px 0;
+    flex-shrink: 0;
+}
+.appr-filter-btn {
+    padding: 6px 16px; border-radius: 20px; border: 1.5px solid #ddd;
+    background: #fff; font-size: 13px; font-weight: 600; color: #666;
+    cursor: pointer; transition: all .2s;
+}
+.appr-filter-btn:hover { border-color: #eb7846; color: #eb7846; }
+.appr-filter-btn.active { background: #eb7846; border-color: #eb7846; color: #fff; }
+
+/* ── Body / scroll area ── */
+.appr-body { flex: 1; overflow-y: auto; padding: 16px 24px 32px; }
+
+/* ── Month group ── */
+.appr-month-group { margin-bottom: 14px; }
+.appr-month-header {
+    display: flex; align-items: center; gap: 10px;
+    background: #fff; border: 1px solid #e8e8e8; border-radius: 10px;
+    padding: 12px 18px; cursor: pointer; user-select: none;
+    transition: box-shadow .2s;
+}
+.appr-month-header:hover { box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+.appr-month-chevron { font-size: 13px; color: #999; transition: transform .25s; }
+.appr-month-group.expanded .appr-month-chevron { transform: rotate(90deg); }
+.appr-month-label { font-size: 15px; font-weight: 700; color: #1a1a1a; flex: 1; }
+.appr-month-badge {
+    background: #fff3ed; color: #eb7846; border: 1px solid #eb7846;
+    font-size: 12px; font-weight: 700; border-radius: 10px;
+    padding: 2px 9px;
+}
+.appr-month-badge.all-done { background: #f0fdf4; color: #16a34a; border-color: #16a34a; }
+
+.appr-month-items { display: none; padding-top: 10px; }
+.appr-month-group.expanded .appr-month-items { display: block; }
+
+/* ── Item card ── */
+.appr-item {
+    background: #fff; border: 1px solid #e8e8e8; border-radius: 10px;
+    padding: 16px 18px; margin-bottom: 10px;
+    display: flex; align-items: flex-start; gap: 14px;
+}
+.appr-item-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+}
+.appr-item-icon.leave       { background: #fff3cd; color: #d97706; }
+.appr-item-icon.reimbursement { background: #e0f2fe; color: #0284c7; }
+.appr-item-icon.employee    { background: #f0fdf4; color: #16a34a; }
+.appr-item-icon.task        { background: #fdf4ff; color: #9333ea; }
+.appr-item-icon.project     { background: #fff1f0; color: #eb7846; }
+
+.appr-item-body { flex: 1; min-width: 0; }
+.appr-item-title { font-size: 14px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
+.appr-item-meta { font-size: 12px; color: #777; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
+.appr-item-meta span { display: flex; align-items: center; gap: 4px; }
+.appr-item-details {
+    font-size: 12px; color: #555; background: #f8f8f8;
+    border-radius: 6px; padding: 8px 12px; margin-bottom: 10px;
+    display: flex; flex-wrap: wrap; gap: 6px 18px;
+}
+.appr-item-details b { color: #333; }
+
+.appr-comment-box {
+    font-size: 12px; color: #555; background: #fff7f0;
+    border-left: 3px solid #eb7846; border-radius: 0 6px 6px 0;
+    padding: 7px 12px; margin-bottom: 10px;
+}
+.appr-comment-box.rejected { background: #fff1f0; border-color: #ef4444; }
+.appr-comment-box.approved { background: #f0fdf4; border-color: #16a34a; }
+
+.appr-item-actions { display: flex; gap: 8px; }
+.appr-approve-btn, .appr-reject-btn {
+    padding: 7px 18px; border-radius: 7px; border: none;
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s;
+    display: flex; align-items: center; gap: 6px;
+}
+.appr-approve-btn { background: #16a34a; color: #fff; }
+.appr-approve-btn:hover { background: #15803d; }
+.appr-reject-btn  { background: #fff; color: #ef4444; border: 1.5px solid #ef4444; }
+.appr-reject-btn:hover { background: #fef2f2; }
+
+/* ── Status badge ── */
+.appr-status {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+    white-space: nowrap;
+}
+.appr-status.pending  { background: #fff3cd; color: #d97706; }
+.appr-status.approved { background: #dcfce7; color: #16a34a; }
+.appr-status.rejected { background: #fee2e2; color: #ef4444; }
+
+/* ── Empty state ── */
+.appr-empty {
+    text-align: center; padding: 60px 20px; color: #aaa;
+}
+.appr-empty i { font-size: 48px; margin-bottom: 14px; display: block; }
+.appr-empty p { font-size: 15px; }
+
+/* ── Review modal ── */
+.appr-modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.45);
+    display: none; align-items: center; justify-content: center; z-index: 9999;
+}
+.appr-modal-overlay.active { display: flex; }
+.appr-modal {
+    background: #fff; border-radius: 14px; padding: 28px 28px 24px;
+    width: 460px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,.2);
+}
+.appr-modal-title { font-size: 17px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; }
+.appr-modal-subtitle { font-size: 13px; color: #777; margin-bottom: 20px; }
+.appr-modal label { font-size: 13px; font-weight: 600; color: #333; display: block; margin-bottom: 6px; }
+.appr-modal-comment {
+    width: 100%; box-sizing: border-box; border: 1.5px solid #ddd;
+    border-radius: 8px; padding: 10px 12px; font-size: 13px; color: #333;
+    resize: vertical; min-height: 80px; font-family: inherit;
+    transition: border-color .2s;
+}
+.appr-modal-comment:focus { outline: none; border-color: #eb7846; }
+.appr-modal-note { font-size: 12px; color: #999; margin: 6px 0 20px; }
+.appr-modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.appr-modal-cancel {
+    padding: 9px 20px; border-radius: 8px; border: 1.5px solid #ddd;
+    background: #fff; color: #555; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.appr-modal-confirm {
+    padding: 9px 20px; border-radius: 8px; border: none;
+    font-size: 14px; font-weight: 600; cursor: pointer; transition: background .2s;
+}
+.appr-modal-confirm.approve { background: #16a34a; color: #fff; }
+.appr-modal-confirm.approve:hover { background: #15803d; }
+.appr-modal-confirm.reject  { background: #ef4444; color: #fff; }
+.appr-modal-confirm.reject:hover  { background: #dc2626; }
+
+/* ── Employee credentials popup (after approval) ── */
+.appr-cred-box {
+    background: #f8f8f8; border: 1px solid #e8e8e8; border-radius: 8px;
+    padding: 14px 16px; margin: 16px 0;
+}
+.appr-cred-row { display: flex; gap: 10px; font-size: 13px; margin-bottom: 6px; }
+.appr-cred-row:last-child { margin-bottom: 0; }
+.appr-cred-label { color: #777; min-width: 110px; }
+.appr-cred-val { font-weight: 700; color: #1a1a1a; }
+
+/* ── View Bill link ── */
+.appr-view-bill-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    color: #0284c7; font-weight: 600; font-size: 12px;
+    text-decoration: none; padding: 3px 8px; border-radius: 5px;
+    background: #e0f2fe; transition: background .2s;
+}
+.appr-view-bill-btn:hover { background: #bae6fd; }
+
+/* ── Task pending-approval badge in task tracker ── */
+.tt-status-pending { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: #9333ea; background: #fdf4ff; border-radius: 6px; padding: 4px 10px; }
+
+/* ── Project pending phase badge ── */
+.pr-pending-phase {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; color: #d97706;
+    background: #fff3cd; border-radius: 6px; padding: 2px 8px; margin-left: 8px;
+}
+
+/* ── Menu badge ── */
+.appr-menu-badge {
+    position: absolute; top: -4px; right: -4px;
+    background: #ef4444; color: #fff; font-size: 10px; font-weight: 700;
+    border-radius: 10px; padding: 1px 5px; min-width: 16px; text-align: center;
+    line-height: 14px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .appr-header { padding: 12px 16px; }
+    .appr-header-title { font-size: 17px; }
+    .appr-tab { padding: 11px 14px; font-size: 13px; }
+    .appr-body { padding: 12px 14px 28px; }
+    .appr-filter-bar { padding: 12px 14px 0; }
+    .appr-item { flex-direction: column; gap: 10px; }
+    .appr-item-icon { width: 34px; height: 34px; font-size: 15px; }
+}
+@media (max-width: 480px) {
+    .appr-modal { padding: 20px 16px 18px; }
+    .appr-item-actions { flex-wrap: wrap; }
+    .appr-approve-btn, .appr-reject-btn { flex: 1; justify-content: center; }
+}

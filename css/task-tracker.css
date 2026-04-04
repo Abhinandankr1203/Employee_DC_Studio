@@ -111,12 +111,25 @@
     text-align: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     border-left: 4px solid #ccc;
-    transition: transform 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+    user-select: none;
 }
 
 .tt-stat-card:hover {
     transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
+
+/* Active stat card — selected filter state */
+.tt-stat-card.tt-stat-active {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+}
+.tt-stat-total.tt-stat-active  { background: #eef2ff; box-shadow: 0 6px 20px rgba(99, 102, 241, 0.2); }
+.tt-stat-todo.tt-stat-active   { background: #fffbeb; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.2); }
+.tt-stat-progress.tt-stat-active { background: #eff6ff; box-shadow: 0 6px 20px rgba(59, 130, 246, 0.2); }
+.tt-stat-done.tt-stat-active   { background: #f0fdf4; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.2); }
 
 .tt-stat-total { border-left-color: #6366f1; }
 .tt-stat-todo { border-left-color: #f59e0b; }
@@ -614,6 +627,70 @@
     background: #dc2626;
 }
 
+/* ==================== PROJECT GROUPS ==================== */
+
+/* Hidden task rows (collapsed state) */
+.tt-row-hidden { display: none !important; }
+
+/* Project header row */
+.tt-project-row td {
+    background: #fff8f5;
+    border-top: 2px solid #f0e8e0;
+    border-bottom: 1px solid #f0e8e0;
+    padding: 11px 16px !important;
+    cursor: pointer;
+    user-select: none;
+    font-family: 'Poppins', sans-serif;
+}
+.tt-project-row:first-child td { border-top: none; }
+.tt-project-row:hover td { background: #fff0e8; }
+
+/* Chevron */
+.tt-project-chevron {
+    display: inline-block;
+    font-size: 11px;
+    color: #eb7846;
+    margin-right: 10px;
+    transition: transform 0.22s ease;
+    vertical-align: middle;
+}
+
+/* Project code badge */
+.tt-project-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #eb7846;
+    background: #fff0e8;
+    border: 1px solid #eb7846;
+    border-radius: 5px;
+    padding: 2px 7px;
+    margin-right: 8px;
+    vertical-align: middle;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.3px;
+}
+
+/* Project name */
+.tt-project-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a1a;
+    vertical-align: middle;
+}
+
+/* Task count pill */
+.tt-project-count {
+    margin-left: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #888;
+    background: #f0f0f0;
+    border-radius: 10px;
+    padding: 2px 8px;
+    vertical-align: middle;
+}
+
 /* ==================== RESPONSIVE ==================== */
 
 @media (max-width: 768px) {
@@ -703,6 +780,14 @@
         display: block;
         width: 100%;
     }
+
+    /* Project header rows stay as full-width banners, not cards */
+    .tt-table .tt-project-row { display: block; box-shadow: none; padding: 0; border-radius: 0; background: transparent; }
+    .tt-table .tt-project-row td { border-radius: 8px; margin-bottom: 6px; }
+    .tt-project-row td::before { display: none; }
+
+    /* Hidden rows must stay hidden even with display:block override */
+    .tt-table tr.tt-row-hidden { display: none !important; }
 
     .tt-table tbody tr {
         background: white;

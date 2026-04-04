@@ -5,17 +5,79 @@
       "email": "admin@dcstudio.com",
       "name": "Admin User",
       "role": "admin",
-      "password_hash": "0788ae89e371cde724a07acab4bc764153420adaab803ee3d76e19bbcc6bc25f",
-      "salt": "c204c1760fbd21a31d07b270c1112fc4"
+      "isReportingManager": false,
+      "password_hash": "d873295f26ecf1cfac7bde48a608c69171e6465d08a48554ae583c6834e9482a",
+      "salt": "402d13646d76b9fd552106263e4a5a73"
     },
     {
       "id": 2,
-      "email": "stakeholder@dcstudio.com",
-      "name": "Stakeholder",
-      "role": "viewer",
-      "password_hash": "acf338b869b0c499331425d1c93d065858796e3a56b96e7d1c9998233e299c8e",
-      "salt": "21a3b67f8275d550cc3f28e97aa267a3"
+      "email": "rahul@dcstudio.com",
+      "name": "Rahul Sharma",
+      "role": "manager",
+      "isReportingManager": true,
+      "password_hash": "8dee38a7d10797391d28990950479b68255466add65834729e95fcb3139313cc",
+      "salt": "9c7007069c00b77212703a186d478f36"
+    },
+    {
+      "id": 3,
+      "email": "priya@dcstudio.com",
+      "name": "Priya Patel",
+      "role": "employee",
+      "isReportingManager": false,
+      "reportingManagerId": 2,
+      "password_hash": "0123d5d07c06720f3fd833753ff15857995454b693c1f8513ff3d4f49ef4908f",
+      "salt": "21acec99c7846df7dfd2472f0298504f"
+    },
+    {
+      "id": 4,
+      "email": "amit@dcstudio.com",
+      "name": "Amit Kumar",
+      "role": "employee",
+      "isReportingManager": false,
+      "reportingManagerId": 2,
+      "password_hash": "e9836205d0bad437ba88335bd7ee1c844744262455aad2929d95cd27a7484eff",
+      "salt": "d96bf702b3158da57fba0438c3c33376"
+    },
+    {
+      "id": 5,
+      "email": "sneha@dcstudio.com",
+      "name": "Sneha Reddy",
+      "role": "employee",
+      "isReportingManager": false,
+      "reportingManagerId": 2,
+      "password_hash": "8a265e1dd4b26822e9efd59767997dd3eae96ab04210ac47f93361a88ecddae5",
+      "salt": "4d10d81d3f0300762b0cd8ba9aa44059"
+    },
+    {
+      "id": 6,
+      "email": "vikram@dcstudio.com",
+      "name": "Vikram Singh",
+      "role": "employee",
+      "isReportingManager": false,
+      "reportingManagerId": 2,
+      "password_hash": "e535b2f1da0241d5bb80665aea81f0d7a86e3f7ab3cd2bda2880e2224d04bc04",
+      "salt": "a6f34c55b2a1bb153ab4b43908895428"
+    },
+    {
+      "id": 7,
+      "email": "meera@dcstudio.com",
+      "name": "Meera Joshi",
+      "role": "employee",
+      "isReportingManager": false,
+      "reportingManagerId": 2,
+      "password_hash": "9063a71b22efca95a6606779dd9bfd0dc5379cd3c19b85d12b59c90608652598",
+      "salt": "c8044bbcefcbaf2fbb618e7db1050a11"
+    },
+    {
+      "id": 8,
+      "email": "suresh@dcstudio.com",
+      "name": "Suresh Nair",
+      "role": "employee",
+      "isReportingManager": false,
+      "reportingManagerId": 2,
+      "password_hash": "d3744d2e0546b5133e2cf44e82b5d9d05837582797af6157d6bb2ab9273b1a6b",
+      "salt": "83363191ffa34e0e5ec79234285b9bbd"
     }
   ],
-  "nextId": 3
+  "nextId": 9
 }

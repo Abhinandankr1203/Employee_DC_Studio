@@ -1,59 +1,138 @@
 {
   "payslips": [
     {
-      "id": 1,
-      "period": "December 2025",
-      "period_date": "2025-12-01",
-      "gross_salary": 50000,
-      "basic": 25000,
-      "hra": 10000,
-      "travel_allowance": 5000,
-      "other_allowance": 10000,
-      "pf": 1800,
-      "tds": 2500,
-      "professional_tax": 200,
-      "total_deductions": 4500,
-      "net_pay": 45500,
-      "status": "paid",
-      "paid_on": "2025-12-31",
-      "created_at": "2025-12-31T10:00:00.000Z"
+      "id": 1,  "user_id": 1,
+      "period": "January 2026",  "period_date": "2026-01-01",
+      "gross_salary": 150000, "basic": 75000, "hra": 30000, "travel_allowance": 15000, "other_allowance": 30000,
+      "pf": 5400, "tds": 18000, "professional_tax": 200, "total_deductions": 23600, "net_pay": 126400,
+      "status": "paid", "paid_on": "2026-01-31", "created_at": "2026-01-31T10:00:00.000Z"
     },
     {
-      "id": 2,
-      "period": "January 2026",
-      "period_date": "2026-01-01",
-      "gross_salary": 50000,
-      "basic": 25000,
-      "hra": 10000,
-      "travel_allowance": 5000,
-      "other_allowance": 10000,
-      "pf": 1800,
-      "tds": 2500,
-      "professional_tax": 200,
-      "total_deductions": 4500,
-      "net_pay": 45500,
-      "status": "paid",
-      "paid_on": "2026-01-31",
-      "created_at": "2026-01-31T10:00:00.000Z"
+      "id": 2,  "user_id": 1,
+      "period": "February 2026", "period_date": "2026-02-01",
+      "gross_salary": 150000, "basic": 75000, "hra": 30000, "travel_allowance": 15000, "other_allowance": 30000,
+      "pf": 5400, "tds": 18000, "professional_tax": 200, "total_deductions": 23600, "net_pay": 126400,
+      "status": "paid", "paid_on": "2026-02-28", "created_at": "2026-02-28T10:00:00.000Z"
     },
     {
-      "id": 3,
-      "period": "February 2026",
-      "period_date": "2026-02-01",
-      "gross_salary": 50000,
-      "basic": 25000,
-      "hra": 10000,
-      "travel_allowance": 5000,
-      "other_allowance": 10000,
-      "pf": 1800,
-      "tds": 2500,
-      "professional_tax": 200,
-      "total_deductions": 4500,
-      "net_pay": 45500,
-      "status": "paid",
-      "paid_on": "2026-02-28",
-      "created_at": "2026-02-28T10:00:00.000Z"
+      "id": 3,  "user_id": 1,
+      "period": "March 2026",    "period_date": "2026-03-01",
+      "gross_salary": 150000, "basic": 75000, "hra": 30000, "travel_allowance": 15000, "other_allowance": 30000,
+      "pf": 5400, "tds": 18000, "professional_tax": 200, "total_deductions": 23600, "net_pay": 126400,
+      "status": "paid", "paid_on": "2026-03-31", "created_at": "2026-03-31T10:00:00.000Z"
+    },
+    {
+      "id": 4,  "user_id": 2,
+      "period": "January 2026",  "period_date": "2026-01-01",
+      "gross_salary": 120000, "basic": 60000, "hra": 24000, "travel_allowance": 12000, "other_allowance": 24000,
+      "pf": 4320, "tds": 12000, "professional_tax": 200, "total_deductions": 16520, "net_pay": 103480,
+      "status": "paid", "paid_on": "2026-01-31", "created_at": "2026-01-31T10:00:00.000Z"
+    },
+    {
+      "id": 5,  "user_id": 2,
+      "period": "February 2026", "period_date": "2026-02-01",
+      "gross_salary": 120000, "basic": 60000, "hra": 24000, "travel_allowance": 12000, "other_allowance": 24000,
+      "pf": 4320, "tds": 12000, "professional_tax": 200, "total_deductions": 16520, "net_pay": 103480,
+      "status": "paid", "paid_on": "2026-02-28", "created_at": "2026-02-28T10:00:00.000Z"
+    },
+    {
+      "id": 6,  "user_id": 2,
+      "period": "March 2026",    "period_date": "2026-03-01",
+      "gross_salary": 120000, "basic": 60000, "hra": 24000, "travel_allowance": 12000, "other_allowance": 24000,
+      "pf": 4320, "tds": 12000, "professional_tax": 200, "total_deductions": 16520, "net_pay": 103480,
+      "status": "paid", "paid_on": "2026-03-31", "created_at": "2026-03-31T10:00:00.000Z"
+    },
+    {
+      "id": 7,  "user_id": 3,
+      "period": "January 2026",  "period_date": "2026-01-01",
+      "gross_salary": 75000, "basic": 37500, "hra": 15000, "travel_allowance": 7500, "other_allowance": 15000,
+      "pf": 2700, "tds": 6000, "professional_tax": 200, "total_deductions": 8900, "net_pay": 66100,
+      "status": "paid", "paid_on": "2026-01-31", "created_at": "2026-01-31T10:00:00.000Z"
+    },
+    {
+      "id": 8,  "user_id": 3,
+      "period": "February 2026", "period_date": "2026-02-01",
+      "gross_salary": 75000, "basic": 37500, "hra": 15000, "travel_allowance": 7500, "other_allowance": 15000,
+      "pf": 2700, "tds": 6000, "professional_tax": 200, "total_deductions": 8900, "net_pay": 66100,
+      "status": "paid", "paid_on": "2026-02-28", "created_at": "2026-02-28T10:00:00.000Z"
+    },
+    {
+      "id": 9,  "user_id": 3,
+      "period": "March 2026",    "period_date": "2026-03-01",
+      "gross_salary": 75000, "basic": 37500, "hra": 15000, "travel_allowance": 7500, "other_allowance": 15000,
+      "pf": 2700, "tds": 6000, "professional_tax": 200, "total_deductions": 8900, "net_pay": 66100,
+      "status": "paid", "paid_on": "2026-03-31", "created_at": "2026-03-31T10:00:00.000Z"
+    },
+    {
+      "id": 10, "user_id": 4,
+      "period": "January 2026",  "period_date": "2026-01-01",
+      "gross_salary": 65000, "basic": 32500, "hra": 13000, "travel_allowance": 6500, "other_allowance": 13000,
+      "pf": 2340, "tds": 4000, "professional_tax": 200, "total_deductions": 6540, "net_pay": 58460,
+      "status": "paid", "paid_on": "2026-01-31", "created_at": "2026-01-31T10:00:00.000Z"
+    },
+    {
+      "id": 11, "user_id": 4,
+      "period": "February 2026", "period_date": "2026-02-01",
+      "gross_salary": 65000, "basic": 32500, "hra": 13000, "travel_allowance": 6500, "other_allowance": 13000,
+      "pf": 2340, "tds": 4000, "professional_tax": 200, "total_deductions": 6540, "net_pay": 58460,
+      "status": "paid", "paid_on": "2026-02-28", "created_at": "2026-02-28T10:00:00.000Z"
+    },
+    {
+      "id": 12, "user_id": 4,
+      "period": "March 2026",    "period_date": "2026-03-01",
+      "gross_salary": 65000, "basic": 32500, "hra": 13000, "travel_allowance": 6500, "other_allowance": 13000,
+      "pf": 2340, "tds": 4000, "professional_tax": 200, "total_deductions": 6540, "net_pay": 58460,
+      "status": "paid", "paid_on": "2026-03-31", "created_at": "2026-03-31T10:00:00.000Z"
+    },
+    {
+      "id": 13, "user_id": 5,
+      "period": "February 2026", "period_date": "2026-02-01",
+      "gross_salary": 60000, "basic": 30000, "hra": 12000, "travel_allowance": 6000, "other_allowance": 12000,
+      "pf": 2160, "tds": 3500, "professional_tax": 200, "total_deductions": 5860, "net_pay": 54140,
+      "status": "paid", "paid_on": "2026-02-28", "created_at": "2026-02-28T10:00:00.000Z"
+    },
+    {
+      "id": 14, "user_id": 5,
+      "period": "March 2026",    "period_date": "2026-03-01",
+      "gross_salary": 60000, "basic": 30000, "hra": 12000, "travel_allowance": 6000, "other_allowance": 12000,
+      "pf": 2160, "tds": 3500, "professional_tax": 200, "total_deductions": 5860, "net_pay": 54140,
+      "status": "paid", "paid_on": "2026-03-31", "created_at": "2026-03-31T10:00:00.000Z"
+    },
+    {
+      "id": 15, "user_id": 6,
+      "period": "February 2026", "period_date": "2026-02-01",
+      "gross_salary": 70000, "basic": 35000, "hra": 14000, "travel_allowance": 7000, "other_allowance": 14000,
+      "pf": 2520, "tds": 5000, "professional_tax": 200, "total_deductions": 7720, "net_pay": 62280,
+      "status": "paid", "paid_on": "2026-02-28", "created_at": "2026-02-28T10:00:00.000Z"
+    },
+    {
+      "id": 16, "user_id": 6,
+      "period": "March 2026",    "period_date": "2026-03-01",
+      "gross_salary": 70000, "basic": 35000, "hra": 14000, "travel_allowance": 7000, "other_allowance": 14000,
+      "pf": 2520, "tds": 5000, "professional_tax": 200, "total_deductions": 7720, "net_pay": 62280,
+      "status": "paid", "paid_on": "2026-03-31", "created_at": "2026-03-31T10:00:00.000Z"
+    },
+    {
+      "id": 17, "user_id": 7,
+      "period": "March 2026",    "period_date": "2026-03-01",
+      "gross_salary": 68000, "basic": 34000, "hra": 13600, "travel_allowance": 6800, "other_allowance": 13600,
+      "pf": 2448, "tds": 4500, "professional_tax": 200, "total_deductions": 7148, "net_pay": 60852,
+      "status": "paid", "paid_on": "2026-03-31", "created_at": "2026-03-31T10:00:00.000Z"
+    },
+    {
+      "id": 18, "user_id": 8,
+      "period": "February 2026", "period_date": "2026-02-01",
+      "gross_salary": 90000, "basic": 45000, "hra": 18000, "travel_allowance": 9000, "other_allowance": 18000,
+      "pf": 3240, "tds": 8000, "professional_tax": 200, "total_deductions": 11440, "net_pay": 78560,
+      "status": "paid", "paid_on": "2026-02-28", "created_at": "2026-02-28T10:00:00.000Z"
+    },
+    {
+      "id": 19, "user_id": 8,
+      "period": "March 2026",    "period_date": "2026-03-01",
+      "gross_salary": 90000, "basic": 45000, "hra": 18000, "travel_allowance": 9000, "other_allowance": 18000,
+      "pf": 3240, "tds": 8000, "professional_tax": 200, "total_deductions": 11440, "net_pay": 78560,
+      "status": "paid", "paid_on": "2026-03-31", "created_at": "2026-03-31T10:00:00.000Z"
     }
   ],
-  "nextId": 4
+  "nextId": 20
 }
