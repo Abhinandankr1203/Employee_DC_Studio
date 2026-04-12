@@ -17,7 +17,7 @@
 }
 .appr-header .back-btn:hover { background: #eb7846; color: #fff; }
 .appr-header-logo { height: 36px; }
-.appr-header-title { font-size: 20px; font-weight: 700; color: #1a1a1a; flex: 1; }
+.appr-header-title { font-size: 1.3rem; font-weight: 700; color: #1a1a1a; flex: 1; }
 
 /* ── Tabs ── */
 .appr-tabs-bar {
@@ -149,10 +149,10 @@
 }
 .appr-modal-overlay.active { display: flex; }
 .appr-modal {
-    background: #fff; border-radius: 14px; padding: 28px 28px 24px;
+    background: #fff; border-radius: 16px; padding: 28px 28px 24px;
     width: 460px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,.2);
 }
-.appr-modal-title { font-size: 17px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; }
+.appr-modal-title { font-size: 1.125rem; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; }
 .appr-modal-subtitle { font-size: 13px; color: #777; margin-bottom: 20px; }
 .appr-modal label { font-size: 13px; font-weight: 600; color: #333; display: block; margin-bottom: 6px; }
 .appr-modal-comment {

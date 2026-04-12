@@ -144,13 +144,15 @@ const DCProjects = (function () {
         // Search-by radio toggle
         document.querySelectorAll('input[name="prSearchBy"]').forEach(function (r) {
             r.addEventListener('change', function () {
-                var gstinLabel = document.querySelector('label[for="prGSTINInput"], .pr-customer-search-box .pr-form-label');
+                var gstinGroup  = document.getElementById('prGSTINGroup');
+                var clientGroup = document.getElementById('prClientGroup');
                 var hint = document.getElementById('prGSTINHint');
                 if (r.value === 'name') {
-                    document.getElementById('prGSTINInput').placeholder = 'Enter customer name to search';
-                    if (hint) hint.textContent = 'Enter customer name to search existing records';
+                    if (gstinGroup)  gstinGroup.style.display  = 'none';
+                    if (clientGroup) clientGroup.style.display = '';
                 } else {
-                    document.getElementById('prGSTINInput').placeholder = 'Customer Name';
+                    if (gstinGroup)  gstinGroup.style.display  = '';
+                    if (clientGroup) clientGroup.style.display = 'none';
                     if (hint) hint.textContent = 'Enter GSTIN to search or add new customer';
                 }
             });
@@ -286,17 +288,11 @@ const DCProjects = (function () {
         }
 
         // Customer info
-        setText('pdClientName',    p.client);
-        setText('pdGSTN',          p.customer_gstin);
-        setText('pdBillingAddress',p.billing_address);
-        setText('pdLocation',      p.location);
-        setText('pdArea',          p.area_sqft ? Number(p.area_sqft).toLocaleString('en-IN') + ' sq ft' : '—');
-        setText('pdClientEmail',   p.client_email);
-        setText('pdClientPhone',   p.client_phone);
-        setText('pdContactPerson', p.contact_person);
-        setText('pdContactMobile', p.contact_mobile);
-        setText('pdContactPhone',  p.contact_phone);
-        setText('pdContactEmail',  p.contact_email);
+        setText('pdClientName',     p.client);
+        setText('pdGSTN',           p.customer_gstin);
+        setText('pdBillingAddress', p.billing_address);
+        setText('pdContactPerson',  p.contact_person);
+        setText('pdContactDetails', [p.contact_mobile, p.contact_phone].filter(Boolean).join(' / ') || '—');
 
         // Client contacts panel (multiple)
         var ccList     = document.getElementById('pdClientContactsList');
@@ -313,36 +309,19 @@ const DCProjects = (function () {
         }
 
         // Project info
-        setText('pdStatus',      capitalize(p.status || 'active'));
-        setText('pdPhase',       capitalize(p.current_phase || 'concept'));
-        setText('pdProjectType', p.project_type);
+        setText('pdProjectType',  p.project_type);
         setText('pdBookingOffice', p.booking_office);
         setText('pdSize',        p.size ? p.size + ' ' + (p.unit_of_measurement || '') : '—');
+        setText('pdPoNumber',    p.po_number || '—');
+        setText('pdPoDate',      p.po_date ? formatDateLong(p.po_date) : '—');
+        setText('pdStartDate',   p.start_date  ? formatDateLong(p.start_date)  : '—');
+        setText('pdEndDate',     p.end_date    ? formatDateLong(p.end_date)    : '—');
+        setText('pdDuration',    p.expected_duration_days ? p.expected_duration_days + ' days' : '—');
         setText('pdSiteName',    p.site_name);
         setText('pdSiteAddress', p.site_address);
         setText('pdSiteContactPerson',  p.contact_person);
         setText('pdSiteContactDetails', [p.contact_mobile, p.contact_phone].filter(Boolean).join(' / ') || '—');
-        setText('pdSiteContactEmail',   p.contact_email);
-        setText('pdStartDate',  p.start_date  ? formatDateLong(p.start_date)  : '—');
-        setText('pdEndDate',    p.end_date    ? formatDateLong(p.end_date)    : '—');
-        setText('pdDuration',   p.expected_duration_days ? p.expected_duration_days + ' days' : '—');
-        setText('pdHandoverDate', p.handover_date ? formatDateLong(p.handover_date) : '—');
-        setText('pdCurrency',   p.project_currency || 'INR');
-        setText('pdProjectValue', p.overall_project_value ? formatCurrency(p.overall_project_value) : '—');
-        setText('pdConsultancyPct', p.consultancy_charges_pct != null ? p.consultancy_charges_pct + '%' : '—');
-        setText('pdDocFolder',  p.document_folder_path);
-
-        // Description + notes
-        setText('pdDesc',  p.description);
-        setText('pdNotes', p.project_notes);
-        var notesRow = document.getElementById('pdNotesRow');
-        if (notesRow) notesRow.style.display = (admin && p.project_notes) ? '' : 'none';
-
-        // Retention (admin)
-        setText('pdRetentionAmount', p.retention_amount ? formatCurrency(p.retention_amount) + (p.retention_amount_type ? ' (' + p.retention_amount_type + ')' : '') : '—');
-        setText('pdRetentionPeriod', p.retention_period ? p.retention_period + ' ' + (p.retention_period_unit || '') : '—');
-        setText('pdRetentionDueDate', p.retention_due_date ? formatDateLong(p.retention_due_date) : '—');
-        setText('pdRetentionDesc', p.retention_description);
+        setText('pdShipToGstin', p.ship_to_gstin || '—');
 
         // Payment terms (admin)
         var ptBody = document.getElementById('pdPaymentTerms');
@@ -699,11 +678,6 @@ const DCProjects = (function () {
         if (match) {
             var form = document.getElementById('prForm');
             if (form.elements['prClient']) form.elements['prClient'].value = match.client || '';
-            if (form.elements['prClientEmail']) form.elements['prClientEmail'].value = match.client_email || '';
-            if (form.elements['prClientPhone']) form.elements['prClientPhone'].value = match.client_phone || '';
-            if (form.elements['prBillingAddress']) form.elements['prBillingAddress'].value = match.billing_address || '';
-            if (form.elements['prLocation']) form.elements['prLocation'].value = match.location || '';
-            if (form.elements['prArea']) form.elements['prArea'].value = match.area_sqft || '';
             if (form.elements['prCustomerGSTIN'] && searchBy && searchBy.value !== 'gstin') {
                 form.elements['prCustomerGSTIN'].value = match.customer_gstin || '';
             }
@@ -781,6 +755,10 @@ const DCProjects = (function () {
         if (gstinRadio) gstinRadio.checked = true;
         var hint = document.getElementById('prGSTINHint');
         if (hint) hint.textContent = 'Enter GSTIN to search or add new customer';
+        var gstinGroup  = document.getElementById('prGSTINGroup');
+        var clientGroup = document.getElementById('prClientGroup');
+        if (gstinGroup)  gstinGroup.style.display  = '';
+        if (clientGroup) clientGroup.style.display = 'none';
 
         var submitBtn = document.getElementById('prForm').querySelector('.pr-form-submit');
         if (submitBtn) submitBtn.textContent = 'Create Project';
@@ -795,13 +773,17 @@ const DCProjects = (function () {
         var form = document.getElementById('prForm');
         form.reset();
 
+        // Reset search-by toggle to GSTIN mode
+        var gstinRadio2  = document.querySelector('input[name="prSearchBy"][value="gstin"]');
+        if (gstinRadio2) gstinRadio2.checked = true;
+        var gstinGroup2  = document.getElementById('prGSTINGroup');
+        var clientGroup2 = document.getElementById('prClientGroup');
+        if (gstinGroup2)  gstinGroup2.style.display  = '';
+        if (clientGroup2) clientGroup2.style.display = 'none';
+
         // Core fields
         form.elements['prName'].value        = p.name        || '';
         form.elements['prClient'].value      = p.client      || '';
-        form.elements['prClientEmail'].value = p.client_email|| '';
-        form.elements['prClientPhone'].value = p.client_phone|| '';
-        form.elements['prLocation'].value    = p.location    || '';
-        form.elements['prArea'].value        = p.area_sqft   || '';
         form.elements['prDesc'].value        = p.description || '';
         form.elements['prStartDate'].value   = p.start_date  || '';
         form.elements['prEndDate'].value     = p.end_date    || '';
@@ -823,10 +805,12 @@ const DCProjects = (function () {
         {
             function sv(n, v) { if (form.elements[n]) form.elements[n].value = (v != null ? v : ''); }
             sv('prCustomerGSTIN',       p.customer_gstin);
+            sv('prPoNumber',            p.po_number);
+            sv('prPoDate',              p.po_date);
             sv('prBillingAddress',      p.billing_address);
+            sv('prShipToGstin',         p.ship_to_gstin);
             sv('prProjectType',         p.project_type);
             sv('prBookingOffice',       p.booking_office);
-            sv('prProjectRefCode',      p.project_ref_code);
             sv('prSiteName',            p.site_name);
             sv('prSiteAddress',         p.site_address);
             sv('prSize',                p.size || '');
@@ -895,10 +879,6 @@ const DCProjects = (function () {
         var payload = {
             name:          form.elements['prName'].value.trim(),
             client:        form.elements['prClient'].value.trim(),
-            client_email:  form.elements['prClientEmail'].value.trim(),
-            client_phone:  form.elements['prClientPhone'].value.trim(),
-            location:      form.elements['prLocation'].value.trim(),
-            area_sqft:     parseFloat(form.elements['prArea'].value) || 0,
             description:   form.elements['prDesc'].value.trim(),
             start_date:    form.elements['prStartDate'].value,
             end_date:      form.elements['prEndDate'].value,
@@ -911,12 +891,14 @@ const DCProjects = (function () {
         {
             function fv(n) { return form.elements[n] ? form.elements[n].value : ''; }
             payload.customer_gstin          = fv('prCustomerGSTIN').trim();
+            payload.po_number               = fv('prPoNumber').trim();
+            payload.po_date                 = fv('prPoDate');
             payload.billing_address         = fv('prBillingAddress').trim();
+            payload.ship_to_gstin           = fv('prShipToGstin').trim();
             payload.project_type            = fv('prProjectType').trim();
-            payload.project_ref_code        = fv('prProjectRefCode').trim();
+            payload.booking_office          = fv('prBookingOffice').trim();
             payload.site_name               = fv('prSiteName').trim();
             payload.site_address            = fv('prSiteAddress').trim();
-            payload.booking_office          = fv('prBookingOffice').trim();
             payload.size                    = parseFloat(fv('prSize')) || 0;
             payload.unit_of_measurement     = fv('prUnitOfMeasurement').trim();
             payload.expected_duration_days  = parseInt(fv('prExpectedDuration')) || 0;
@@ -979,30 +961,17 @@ const DCProjects = (function () {
     function calcExpectedDuration() {
         var start = document.getElementById('prStartDate') ? document.getElementById('prStartDate').value : '';
         var end   = document.getElementById('prEndDate')   ? document.getElementById('prEndDate').value   : '';
-        var dur     = document.getElementById('prExpectedDuration');
-        var durText = document.getElementById('prExpectedDurationText');
+        var dur = document.getElementById('prExpectedDuration');
         if (!dur) return;
         if (start && end) {
             var ms = new Date(end) - new Date(start);
             if (ms > 0) {
-                var totalDays = Math.round(ms / 86400000);
-                dur.value = totalDays;
-                var years  = Math.floor(totalDays / 365);
-                var rem    = totalDays % 365;
-                var months = Math.floor(rem / 30);
-                var days   = rem % 30;
-                var parts  = [];
-                if (years)  parts.push(years  + ' year'  + (years  !== 1 ? 's' : ''));
-                if (months) parts.push(months + ' month' + (months !== 1 ? 's' : ''));
-                if (days)   parts.push(days   + ' day'   + (days   !== 1 ? 's' : ''));
-                if (durText) durText.value = parts.length ? parts.join(' ') : '0 days';
+                dur.value = Math.round(ms / 86400000);
             } else {
                 dur.value = '';
-                if (durText) durText.value = '';
             }
         } else {
             dur.value = '';
-            if (durText) durText.value = '';
         }
     }
 

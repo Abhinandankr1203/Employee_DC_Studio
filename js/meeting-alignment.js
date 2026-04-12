@@ -38,6 +38,7 @@ const MeetingAlignment = (function() {
         bindEvents();
         setMinDate();
         checkGoogleAuthStatus();
+        loadProjectClients();
         isInitialized = true;
 
         console.log('Meeting Alignment initialized');
@@ -52,6 +53,9 @@ const MeetingAlignment = (function() {
         elements.externalName = document.getElementById('externalName');
         elements.externalEmail = document.getElementById('externalEmail');
         elements.addExternalBtn = document.getElementById('addExternalBtn');
+        elements.projectClientSelect  = document.getElementById('projectClientSelect');
+        elements.addProjectClientBtn  = document.getElementById('addProjectClientBtn');
+        elements.projectClientPreview = document.getElementById('projectClientPreview');
 
         // Tab elements
         elements.tabBtns = document.querySelectorAll('.tab-btn');
@@ -125,6 +129,14 @@ const MeetingAlignment = (function() {
         // Add external participant
         if (elements.addExternalBtn) {
             elements.addExternalBtn.addEventListener('click', addExternalParticipant);
+        }
+
+        // Client from project picker
+        if (elements.projectClientSelect) {
+            elements.projectClientSelect.addEventListener('change', onProjectClientChange);
+        }
+        if (elements.addProjectClientBtn) {
+            elements.addProjectClientBtn.addEventListener('click', addProjectClientParticipant);
         }
 
         // Google connect
@@ -327,10 +339,85 @@ const MeetingAlignment = (function() {
         showNotification('External participant added', 'success');
     }
 
+    // ── Client from Project ─────────────────────────────────
+    async function loadProjectClients() {
+        try {
+            const response = await fetch(`${API_BASE}/projects/clients`, { headers: authHeaders() });
+            const data = await response.json();
+            if (!elements.projectClientSelect) return;
+            if (data.clients && data.clients.length > 0) {
+                const opts = data.clients.map(c =>
+                    `<option value="${c.project_id}"
+                        data-name="${escHtml(c.client_name)}"
+                        data-email="${escHtml(c.client_email)}"
+                        data-project="${escHtml(c.project_name)}"
+                        data-code="${escHtml(c.project_code)}">
+                        ${escHtml(c.project_code ? c.project_code + ' — ' : '')}${escHtml(c.project_name)} (${escHtml(c.client_name)})
+                    </option>`
+                ).join('');
+                elements.projectClientSelect.innerHTML =
+                    '<option value="">-- Select a Project --</option>' + opts;
+            }
+        } catch (e) {
+            console.error('Failed to load project clients', e);
+        }
+    }
+
+    function onProjectClientChange() {
+        const select  = elements.projectClientSelect;
+        const preview = elements.projectClientPreview;
+        if (!select || !preview) return;
+        const opt = select.options[select.selectedIndex];
+        if (!opt || !opt.value) { preview.innerHTML = ''; return; }
+        const name  = opt.dataset.name    || '';
+        const email = opt.dataset.email   || '';
+        const proj  = opt.dataset.project || '';
+        preview.innerHTML = `
+            <div class="client-preview">
+                <i class="fas fa-user-tie"></i>
+                <div>
+                    <div class="client-preview-name">${escHtml(name)}</div>
+                    <div class="client-preview-email">${escHtml(email)}</div>
+                    <div class="client-preview-project">Project: ${escHtml(proj)}</div>
+                </div>
+            </div>`;
+    }
+
+    function addProjectClientParticipant() {
+        const select = elements.projectClientSelect;
+        if (!select || !select.value) {
+            showNotification('Please select a project first', 'error');
+            return;
+        }
+        const opt   = select.options[select.selectedIndex];
+        const name  = opt.dataset.name  || '';
+        const email = opt.dataset.email || '';
+        if (!email) {
+            showNotification('This project has no client email on file', 'error');
+            return;
+        }
+        if (selectedParticipants.find(p => p.email === email)) {
+            showNotification('Client is already added as a participant', 'error');
+            return;
+        }
+        selectedParticipants.push({
+            employee_id: null,
+            name:  name || email,
+            email: email,
+            type:  'client'
+        });
+        select.value = '';
+        elements.projectClientPreview.innerHTML = '';
+        renderSelectedParticipants();
+        showNotification(`${name || email} added as client`, 'success');
+    }
+
     function renderSelectedParticipants() {
+        const typeLabel = { internal: 'Employee', external: 'External', client: 'Client' };
         elements.selectedParticipants.innerHTML = selectedParticipants.map((p, index) => `
-            <div class="participant-chip ${p.type}">
-                <span>${p.name}</span>
+            <div class="participant-chip ${p.type}" title="${escHtml(p.email)}">
+                <span>${escHtml(p.name)}</span>
+                <small style="opacity:.7;font-size:10px;margin-left:2px">${typeLabel[p.type] || p.type}</small>
                 <button class="remove-btn" onclick="MeetingAlignment.removeParticipant(${index})">
                     <i class="fas fa-times"></i>
                 </button>

@@ -9,6 +9,7 @@ var DCReports = (function () {
     var isInitialized = false;
     var activeTab = 'site-survey';
     var mediaMap = {};          // itemId -> [{id, dataUrl, annotated}]
+    var currentEditingReportId = {}; // type -> reportId being edited, or null
     var cameraStream = null;
     var cameraItemId = null;
     var cameraOrientation = 'landscape'; // 'portrait' | 'landscape'
@@ -27,6 +28,10 @@ var DCReports = (function () {
     var facingMode = 'environment';
     var pdfLogoDataUrl = null;      // pre-loaded DC Studio logo for PDF
 
+    // ── OneDrive Config ────────────────────────────────────
+    // Paste your Power Automate / OneDrive HTTP trigger URL here when ready:
+    var ONEDRIVE_ENDPOINT = null; // e.g. 'https://prod-xx.westus.logic.azure.com/...'
+
     // IndexedDB
     var DB_NAME = 'dc-studio-reports';
     var DB_VERSION = 1;
@@ -40,10 +45,11 @@ var DCReports = (function () {
         openDB(function () {
             renderSiteSurvey();
             renderQualityChecklist();
-            addProgressItem();  // start with one item
+            // Don't add progress item yet — it's added when user starts new report
             bindEvents();
-            setTodayDates();
             loadPdfLogo();
+            // Show chooser for the active tab instead of blank form
+            showChooser('site-survey');
             console.log('DCReports initialized');
         });
     }
@@ -85,6 +91,49 @@ var DCReports = (function () {
         if (mobileSelect) {
             mobileSelect.addEventListener('change', function () {
                 switchTab(this.value);
+            });
+        }
+
+        // Sidebar toggle
+        bindBtn('rptSidebarToggle', toggleSidebar);
+
+        // Import file input
+        var importInput = document.getElementById('rptImportInput');
+        if (importInput) {
+            importInput.addEventListener('change', function (e) {
+                var file = e.target.files[0];
+                if (!file) return;
+                var reader = new FileReader();
+                reader.onload = function (ev) {
+                    try {
+                        var report = JSON.parse(ev.target.result);
+                        var validTypes = ['site-survey', 'quality-checklist', 'site-progress'];
+                        if (!report.type || validTypes.indexOf(report.type) === -1) {
+                            showToast('Invalid report file — missing or unknown type.', 'error');
+                            return;
+                        }
+                        var prefix = CHOOSER_PREFIXES[report.type];
+                        report.id = 'draft-' + prefix + '-' + Date.now();
+                        report.createdAt = new Date().toISOString();
+                        saveToDB(report, function () {
+                            currentEditingReportId[report.type] = report.id;
+                            switchTab(report.type);
+                            clearReportForm(report.type);
+                            fillFormFromReport(report, report.type);
+                            var chooser  = document.getElementById(prefix + '-chooser');
+                            var formWrap = document.getElementById(prefix + '-form-wrap');
+                            if (chooser)  chooser.style.display  = 'none';
+                            if (formWrap) formWrap.style.display = '';
+                            var label = document.getElementById(prefix + '-editing-label');
+                            if (label) label.textContent = 'Imported Report';
+                            showToast('Report imported successfully!', 'success');
+                        });
+                    } catch (ex) {
+                        showToast('Failed to read file — make sure it is a valid report JSON.', 'error');
+                    }
+                };
+                reader.readAsText(file);
+                this.value = ''; // reset so same file can be re-imported
             });
         }
 
@@ -233,6 +282,9 @@ var DCReports = (function () {
 
         var mobileSelect = document.getElementById('reportsMobileTab');
         if (mobileSelect) mobileSelect.value = tab;
+
+        // Show chooser when switching to a tab (only if DB is ready)
+        if (db) showChooser(tab);
     }
 
     function setTodayDates() {
@@ -936,6 +988,36 @@ var DCReports = (function () {
         return el ? el.value : '';
     }
 
+    // ── OneDrive Save ──────────────────────────────────────
+    function saveToOneDrive(report) {
+        if (!ONEDRIVE_ENDPOINT) return; // link not configured yet
+        showToast('Saving to OneDrive…', 'info');
+        // Strip base64 media to keep payload light — only metadata goes to OneDrive
+        var payload = JSON.parse(JSON.stringify(report));
+        if (payload.media) {
+            Object.keys(payload.media).forEach(function (k) {
+                payload.media[k] = (payload.media[k] || []).map(function (m) {
+                    return { id: m.id, annotated: m.annotated };
+                });
+            });
+        }
+        fetch(ONEDRIVE_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(function (res) {
+            if (res.ok) {
+                showToast('Saved to OneDrive!', 'success');
+            } else {
+                showToast('OneDrive save failed (status ' + res.status + ')', 'error');
+            }
+        })
+        .catch(function () {
+            showToast('OneDrive unreachable — report saved locally.', 'error');
+        });
+    }
+
     // ── Submit ─────────────────────────────────────────────
     function submitSiteSurvey() {
         var report = {
@@ -953,6 +1035,7 @@ var DCReports = (function () {
             if (res.success) {
                 report.synced = true;
                 saveToDB(report);
+                saveToOneDrive(report);
                 showToast(res.message || 'Site Survey submitted successfully!', 'success');
             } else {
                 saveToDB(report);
@@ -980,6 +1063,7 @@ var DCReports = (function () {
             if (res.success) {
                 report.synced = true;
                 saveToDB(report);
+                saveToOneDrive(report);
                 showToast(res.message || 'Quality Checklist submitted!', 'success');
             } else {
                 saveToDB(report);
@@ -1007,6 +1091,7 @@ var DCReports = (function () {
             if (res.success) {
                 report.synced = true;
                 saveToDB(report);
+                saveToOneDrive(report);
                 showToast(res.message || 'Site Progress submitted!', 'success');
             } else {
                 saveToDB(report);
@@ -1020,10 +1105,14 @@ var DCReports = (function () {
 
     // ── Save Draft ─────────────────────────────────────────
     function saveDraft(type) {
+        // Reuse existing draft ID if we're editing one, otherwise create new
+        var existingId = currentEditingReportId[type];
+        var reuseId = existingId && existingId.startsWith('draft-');
+
         var report;
         if (type === 'site-survey') {
             report = {
-                id: 'draft-ss-' + Date.now(),
+                id: reuseId ? existingId : ('draft-ss-' + Date.now()),
                 type: 'site-survey',
                 projectInfo: collectProjectInfo('ss'),
                 fields: collectFieldValues('#siteSurveyPanel'),
@@ -1033,7 +1122,7 @@ var DCReports = (function () {
             };
         } else if (type === 'quality-checklist') {
             report = {
-                id: 'draft-qc-' + Date.now(),
+                id: reuseId ? existingId : ('draft-qc-' + Date.now()),
                 type: 'quality-checklist',
                 projectInfo: collectProjectInfo('qc'),
                 fields: collectFieldValues('#qualityChecklistPanel'),
@@ -1043,7 +1132,7 @@ var DCReports = (function () {
             };
         } else {
             report = {
-                id: 'draft-sp-' + Date.now(),
+                id: reuseId ? existingId : ('draft-sp-' + Date.now()),
                 type: 'site-progress',
                 projectInfo: collectProjectInfo('sp'),
                 progressItems: collectProgressItems(),
@@ -1053,8 +1142,276 @@ var DCReports = (function () {
             };
         }
 
+        // Track the saved draft ID so future saves update the same record
+        currentEditingReportId[type] = report.id;
+
         saveToDB(report, function () {
-            showToast('Draft saved locally!', 'success');
+            showToast('Draft saved!', 'success');
+        });
+    }
+
+    // ── Sidebar Toggle ─────────────────────────────────────
+    function toggleSidebar() {
+        var sidebar = document.querySelector('.reports-sidebar');
+        var btn     = document.getElementById('rptSidebarToggle');
+        if (!sidebar) return;
+        sidebar.classList.toggle('collapsed');
+        if (btn) btn.classList.toggle('active', sidebar.classList.contains('collapsed'));
+    }
+
+    // ── Report Chooser ─────────────────────────────────────
+    var CHOOSER_PREFIXES = {
+        'site-survey':       'ss',
+        'quality-checklist': 'qc',
+        'site-progress':     'sp'
+    };
+    var CHOOSER_LABELS = {
+        'site-survey':       'Site Survey',
+        'quality-checklist': 'Quality Checklist',
+        'site-progress':     'Site Progress'
+    };
+    var PANEL_SELECTORS = {
+        'site-survey':       '#siteSurveyPanel',
+        'quality-checklist': '#qualityChecklistPanel',
+        'site-progress':     '#siteProgressPanel'
+    };
+
+    function getAllFromDBByType(type, cb) {
+        if (!db) { cb([]); return; }
+        var tx = db.transaction('reports', 'readonly');
+        var results = [];
+        var req = tx.objectStore('reports').openCursor();
+        req.onsuccess = function (e) {
+            var cursor = e.target.result;
+            if (cursor) {
+                if (cursor.value.type === type) results.push(cursor.value);
+                cursor.continue();
+            } else {
+                results.sort(function (a, b) {
+                    return (b.createdAt || '').localeCompare(a.createdAt || '');
+                });
+                cb(results);
+            }
+        };
+        req.onerror = function () { cb([]); };
+    }
+
+    function deleteFromDB(id, cb) {
+        if (!db) { cb && cb(); return; }
+        var tx = db.transaction('reports', 'readwrite');
+        tx.objectStore('reports').delete(id);
+        tx.oncomplete = function () { cb && cb(); };
+    }
+
+    function showChooser(type) {
+        var prefix = CHOOSER_PREFIXES[type];
+        var chooser  = document.getElementById(prefix + '-chooser');
+        var formWrap = document.getElementById(prefix + '-form-wrap');
+        if (chooser)  chooser.style.display  = '';
+        if (formWrap) formWrap.style.display = 'none';
+        renderChooserContent(type);
+    }
+
+    function renderChooserContent(type) {
+        var prefix  = CHOOSER_PREFIXES[type];
+        var chooser = document.getElementById(prefix + '-chooser');
+        if (!chooser) return;
+
+        chooser.innerHTML =
+            '<div class="rpt-chooser-header">' +
+            '<h2>' + CHOOSER_LABELS[type] + ' Report</h2>' +
+            '<p>Resume a saved report, import one, or start fresh</p>' +
+            '</div>' +
+            '<div class="rpt-chooser-actions">' +
+            '<button class="rpt-new-btn" onclick="DCReports.startNewReport(\'' + type + '\')">' +
+            '<i class="fas fa-plus-circle"></i> New Report</button>' +
+            '<button class="rpt-import-btn" onclick="DCReports.triggerImport()">' +
+            '<i class="fas fa-file-import"></i> Import from Computer / OneDrive</button>' +
+            '</div>' +
+            '<div class="rpt-saved-section" id="' + prefix + '-saved-section">' +
+            '<div class="rpt-saved-loading"><i class="fas fa-spinner fa-spin"></i> Loading saved reports…</div>' +
+            '</div>';
+
+        getAllFromDBByType(type, function (reports) {
+            var section = document.getElementById(prefix + '-saved-section');
+            if (!section) return;
+            if (reports.length === 0) {
+                section.innerHTML = '<div class="rpt-no-saved"><i class="fas fa-inbox"></i> No saved reports yet. Start a new one above.</div>';
+                return;
+            }
+            var html = '<h3 class="rpt-saved-title"><i class="fas fa-folder-open"></i> Saved Reports (' + reports.length + ')</h3>' +
+                       '<div class="rpt-saved-list">';
+            reports.forEach(function (r) {
+                var isDraft  = r.id.startsWith('draft-');
+                var dateStr  = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+                var timeStr  = r.createdAt ? new Date(r.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '';
+                var projName = (r.projectInfo && (r.projectInfo.project || r.projectInfo.projectNo)) || '';
+                var statusCls   = isDraft ? 'draft' : (r.synced ? 'synced' : 'pending');
+                var statusLabel = isDraft ? 'Draft'  : (r.synced ? 'Submitted' : 'Pending Sync');
+                html +=
+                    '<div class="rpt-saved-card">' +
+                    '<div class="rpt-saved-card-info">' +
+                    '<div class="rpt-saved-card-top">' +
+                    '<span class="rpt-status-badge ' + statusCls + '">' + statusLabel + '</span>' +
+                    (projName ? '<span class="rpt-saved-project">' + escHtml(projName) + '</span>' : '') +
+                    '</div>' +
+                    '<div class="rpt-saved-card-date">' + dateStr + (timeStr ? ' · ' + timeStr : '') + '</div>' +
+                    '</div>' +
+                    '<div class="rpt-saved-card-actions">' +
+                    '<button class="rpt-open-btn" onclick="DCReports.openSavedReport(\'' + r.id + '\',\'' + type + '\')"><i class="fas fa-folder-open"></i> Open</button>' +
+                    '<button class="rpt-delete-btn" onclick="DCReports.deleteLocalReport(\'' + r.id + '\',\'' + type + '\')" title="Delete"><i class="fas fa-trash-alt"></i></button>' +
+                    '</div>' +
+                    '</div>';
+            });
+            html += '</div>';
+            section.innerHTML = html;
+        });
+    }
+
+    function startNewReport(type) {
+        var prefix = CHOOSER_PREFIXES[type];
+        currentEditingReportId[type] = null;
+        clearReportForm(type);
+
+        var chooser  = document.getElementById(prefix + '-chooser');
+        var formWrap = document.getElementById(prefix + '-form-wrap');
+        if (chooser)  chooser.style.display  = 'none';
+        if (formWrap) formWrap.style.display = '';
+
+        var label = document.getElementById(prefix + '-editing-label');
+        if (label) label.textContent = 'New Report';
+
+        setTodayDates();
+    }
+
+    function clearReportForm(type) {
+        var prefix = CHOOSER_PREFIXES[type];
+
+        // Clear project info inputs
+        document.querySelectorAll('[id^="' + prefix + '-"]').forEach(function (el) {
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') {
+                el.value = '';
+            }
+        });
+
+        // Clear checklist field values
+        var panelSel = PANEL_SELECTORS[type];
+        document.querySelectorAll(panelSel + ' [data-field-id]').forEach(function (el) {
+            el.value = '';
+        });
+
+        // Clear media galleries for this panel
+        var panelEl = document.querySelector(panelSel);
+        if (panelEl) {
+            panelEl.querySelectorAll('[id^="gallery-"]').forEach(function (g) {
+                delete mediaMap[g.id.replace('gallery-', '')];
+                g.innerHTML = '';
+            });
+        }
+
+        // For site-progress reset items list with one fresh item
+        if (type === 'site-progress') {
+            var list = document.getElementById('sp-items-list');
+            if (list) {
+                list.innerHTML = '';
+                progressCounter = 0;
+                addProgressItem();
+            }
+        }
+    }
+
+    function openSavedReport(reportId, type) {
+        if (!db) { showToast('Database not available', 'error'); return; }
+        var tx  = db.transaction('reports', 'readonly');
+        var req = tx.objectStore('reports').get(reportId);
+        req.onsuccess = function (e) {
+            var report = e.target.result;
+            if (!report) { showToast('Report not found', 'error'); return; }
+
+            var prefix = CHOOSER_PREFIXES[type];
+            currentEditingReportId[type] = reportId;
+            clearReportForm(type);
+            fillFormFromReport(report, type);
+
+            var chooser  = document.getElementById(prefix + '-chooser');
+            var formWrap = document.getElementById(prefix + '-form-wrap');
+            if (chooser)  chooser.style.display  = 'none';
+            if (formWrap) formWrap.style.display = '';
+
+            var label = document.getElementById(prefix + '-editing-label');
+            if (label) label.textContent = reportId.startsWith('draft-') ? 'Editing Draft' : 'Editing Report';
+
+            showToast('Report loaded. You can now edit and save.', 'success');
+        };
+        req.onerror = function () { showToast('Failed to load report', 'error'); };
+    }
+
+    function fillFormFromReport(report, type) {
+        var prefix = CHOOSER_PREFIXES[type];
+
+        // Project info
+        if (report.projectInfo) {
+            Object.keys(report.projectInfo).forEach(function (key) {
+                var el = document.getElementById(prefix + '-' + key);
+                if (el) el.value = report.projectInfo[key] || '';
+            });
+        }
+
+        // Checklist / field values
+        if (report.fields) {
+            Object.keys(report.fields).forEach(function (fieldId) {
+                var el = document.querySelector('[data-field-id="' + fieldId + '"]');
+                if (el) el.value = report.fields[fieldId] || '';
+            });
+        }
+
+        // Site-progress items
+        if (type === 'site-progress' && report.progressItems && report.progressItems.length) {
+            var list = document.getElementById('sp-items-list');
+            if (list) {
+                list.innerHTML = '';
+                progressCounter = 0;
+                report.progressItems.forEach(function (item) {
+                    progressCounter++;
+                    var itemId = item.id || ('progress-' + progressCounter);
+                    var div = document.createElement('div');
+                    div.className = 'progress-item-card';
+                    div.id = 'card-' + itemId;
+                    div.innerHTML =
+                        '<div class="item-header">' +
+                        '<h4>Item #' + progressCounter + '</h4>' +
+                        '<button class="remove-item-btn" onclick="DCReports.removeProgressItem(\'' + itemId + '\')"><i class="fas fa-trash-alt"></i></button>' +
+                        '</div>' +
+                        '<div class="progress-item-grid">' +
+                        '<div><label>S. No.</label><input type="text" data-field-id="' + itemId + '-sno" value="' + escAttr(item.serialNo || String(progressCounter)) + '"></div>' +
+                        '<div><label>Description</label><input type="text" data-field-id="' + itemId + '-desc" value="' + escAttr(item.description || '') + '" placeholder="Description of work"></div>' +
+                        '<div><label>Floor / Area</label><input type="text" data-field-id="' + itemId + '-floor" value="' + escAttr(item.floorArea || '') + '" placeholder="Floor/Area"></div>' +
+                        '<div><label>Location</label><input type="text" data-field-id="' + itemId + '-location" value="' + escAttr(item.location || '') + '" placeholder="Location"></div>' +
+                        '</div>' +
+                        '<div class="checklist-item-controls">' +
+                        '<button class="media-btn" onclick="DCReports.openCamera(\'' + itemId + '\')"><i class="fas fa-camera"></i> Camera</button>' +
+                        '<button class="media-btn" onclick="DCReports.openGallery(\'' + itemId + '\')"><i class="fas fa-images"></i> Gallery</button>' +
+                        '</div>' +
+                        '<div class="item-gallery" id="gallery-' + itemId + '"></div>';
+                    list.appendChild(div);
+                });
+            }
+        }
+
+        // Restore media
+        if (report.media) {
+            Object.keys(report.media).forEach(function (itemId) {
+                mediaMap[itemId] = report.media[itemId];
+                renderItemGallery(itemId);
+            });
+        }
+    }
+
+    function deleteLocalReport(reportId, type) {
+        if (!confirm('Delete this saved report? This cannot be undone.')) return;
+        deleteFromDB(reportId, function () {
+            showToast('Report deleted.', 'success');
+            renderChooserContent(type);
         });
     }
 
@@ -1517,6 +1874,15 @@ var DCReports = (function () {
         openGallery: openGallery,
         openAnnotation: openAnnotation,
         removeMedia: removeMedia,
-        removeProgressItem: removeProgressItem
+        removeProgressItem: removeProgressItem,
+        showChooser: showChooser,
+        startNewReport: startNewReport,
+        openSavedReport: openSavedReport,
+        deleteLocalReport: deleteLocalReport,
+        triggerImport: function () {
+            var inp = document.getElementById('rptImportInput');
+            if (inp) inp.click();
+        },
+        toggleSidebar: toggleSidebar
     };
 })();

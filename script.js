@@ -81,11 +81,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     var _role = localStorage.getItem('dc_role');
                     var _apprBtn = document.getElementById('approvalBtn');
                     if (_apprBtn) {
+                        var _menuGrid = document.getElementById('menuGrid');
                         if (_role === 'admin' || _role === 'manager') {
                             _apprBtn.style.display = '';
+                            if (_menuGrid) _menuGrid.classList.add('admin-mode');
                             if (typeof DCApprovals !== 'undefined') DCApprovals.fetchBadge();
                         } else {
                             _apprBtn.style.display = 'none';
+                            if (_menuGrid) _menuGrid.classList.remove('admin-mode');
                         }
                     }
                 }, 3500);
@@ -268,6 +271,31 @@ document.addEventListener('DOMContentLoaded', function() {
         menuItems.forEach(item => {
             item.classList.add('animate');
         });
+        loadAttendanceSummary();
+    }
+
+    // Load monthly attendance summary bar
+    function loadAttendanceSummary() {
+        const token = localStorage.getItem('dc_token');
+        if (!token) return;
+        fetch('/api/attendance/monthly-summary', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.error) return;
+            var title = document.getElementById('attSummaryTitle');
+            if (title && data.monthLabel) title.textContent = 'Current Month Summary (' + data.monthLabel + ')';
+            var set = function(id, val) {
+                var el = document.getElementById(id);
+                if (el) el.textContent = val != null ? val : '—';
+            };
+            set('attWorkingDays', data.workingDays);
+            set('attPresent',     data.present);
+            set('attLeavesTaken', data.leavesTaken);
+            set('attDaysLate',    data.daysLate);
+        })
+        .catch(function() {});
     }
 
     // Menu item click handlers
@@ -530,6 +558,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (approvalBtn && (role === 'admin' || role === 'manager')) {
             approvalBtn.style.display = '';
+            var menuGrid = document.getElementById('menuGrid');
+            if (menuGrid) menuGrid.classList.add('admin-mode');
             if (typeof DCApprovals !== 'undefined') DCApprovals.fetchBadge();
         }
 

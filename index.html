@@ -664,7 +664,7 @@
                     <img src="character.png" alt="Employee" class="dashboard-person">
                 </div>
                 <div class="menu-section">
-                    <div class="menu-grid">
+                    <div class="menu-grid" id="menuGrid">
                         <div class="menu-item" id="taskTrackerBtn">
                             <div class="menu-icon">
                                 <i class="fas fa-tasks"></i>
@@ -688,6 +688,13 @@
                                 <i class="fas fa-users"></i>
                             </div>
                             <span class="menu-title">Team</span>
+                        </div>
+                        <div class="menu-item" id="approvalBtn" style="position:relative;display:none">
+                            <div class="menu-icon" style="position:relative">
+                                <i class="fas fa-check-double"></i>
+                                <span class="appr-menu-badge" id="approvalBadge" style="display:none">0</span>
+                            </div>
+                            <span class="menu-title">Approvals</span>
                         </div>
                         <div class="menu-item" id="meetingAlignmentBtn">
                             <div class="menu-icon">
@@ -713,13 +720,29 @@
                             </div>
                             <span class="menu-title">Calendar</span>
                         </div>
-                        <div class="menu-item" id="approvalBtn" style="position:relative;display:none">
-                            <div class="menu-icon" style="position:relative">
-                                <i class="fas fa-check-double"></i>
-                                <span class="appr-menu-badge" id="approvalBadge" style="display:none">0</span>
-                            </div>
-                            <span class="menu-title">Approvals</span>
-                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Attendance Summary Bar -->
+            <div class="att-summary-bar" id="attSummaryBar">
+                <div class="att-summary-title" id="attSummaryTitle">Current Month Summary</div>
+                <div class="att-summary-stats">
+                    <div class="att-stat">
+                        <span class="att-stat-value att-working" id="attWorkingDays">—</span>
+                        <span class="att-stat-label">Working Days</span>
+                    </div>
+                    <div class="att-stat">
+                        <span class="att-stat-value att-present" id="attPresent">—</span>
+                        <span class="att-stat-label">Present</span>
+                    </div>
+                    <div class="att-stat">
+                        <span class="att-stat-value att-leaves" id="attLeavesTaken">—</span>
+                        <span class="att-stat-label">Leaves Taken</span>
+                    </div>
+                    <div class="att-stat">
+                        <span class="att-stat-value att-late" id="attDaysLate">—</span>
+                        <span class="att-stat-label">Days Late</span>
                     </div>
                 </div>
             </div>
@@ -803,6 +826,18 @@
                                         <input type="text" id="employeeSearch" placeholder="Search employees by name or email..." autocomplete="off">
                                         <div class="search-results" id="employeeSearchResults"></div>
                                     </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Add Client from Project</label>
+                                    <div class="client-from-project">
+                                        <select id="projectClientSelect">
+                                            <option value="">-- Select a Project --</option>
+                                        </select>
+                                        <button type="button" id="addProjectClientBtn" class="add-btn" title="Add client as participant">
+                                            <i class="fas fa-user-plus"></i>
+                                        </button>
+                                    </div>
+                                    <div id="projectClientPreview"></div>
                                 </div>
                                 <div class="form-group">
                                     <label>Add External Participants</label>
@@ -963,12 +998,17 @@
                     <img src="DC Studio Logo new end.png" alt="DC Studio" class="header-logo">
                 </div>
                 <h1 class="page-title">Reports</h1>
-                <div class="reports-mobile-select">
-                    <select id="reportsMobileTab">
-                        <option value="site-survey">Site Survey</option>
-                        <option value="quality-checklist">Quality Checklist</option>
-                        <option value="site-progress">Site Progress</option>
-                    </select>
+                <div class="reports-header-right">
+                    <div class="reports-mobile-select">
+                        <select id="reportsMobileTab">
+                            <option value="site-survey">Site Survey</option>
+                            <option value="quality-checklist">Quality Checklist</option>
+                            <option value="site-progress">Site Progress</option>
+                        </select>
+                    </div>
+                    <button class="rpt-sidebar-toggle" id="rptSidebarToggle" title="Toggle report types">
+                        <i class="fas fa-bars"></i>
+                    </button>
                 </div>
             </header>
 
@@ -993,128 +1033,153 @@
                 <div class="reports-content">
                     <!-- Site Survey Panel -->
                     <div class="report-panel active" id="siteSurveyPanel">
-                        <div class="project-info-form">
-                            <h3><i class="fas fa-info-circle"></i> Project Information</h3>
-                            <div class="project-info-grid">
-                                <div class="form-group">
-                                    <label>Project No.</label>
-                                    <input type="text" id="ss-projectNo" placeholder="Enter project number">
-                                </div>
-                                <div class="form-group">
-                                    <label>Project</label>
-                                    <input type="text" id="ss-project" placeholder="Enter project name">
-                                </div>
-                                <div class="form-group">
-                                    <label>Location</label>
-                                    <input type="text" id="ss-location" placeholder="Enter location">
-                                </div>
-                                <div class="form-group">
-                                    <label>Surveyed By</label>
-                                    <input type="text" id="ss-surveyedBy" placeholder="Enter surveyor name">
-                                </div>
-                                <div class="form-group">
-                                    <label>Date</label>
-                                    <input type="date" id="ss-date">
-                                </div>
-                                <div class="form-group">
-                                    <label>Company</label>
-                                    <input type="text" id="ss-company" placeholder="Enter company name">
-                                </div>
-                                <div class="form-group">
-                                    <label>Designer / Architect</label>
-                                    <input type="text" id="ss-designer" placeholder="Enter designer/architect">
-                                </div>
-                                <div class="form-group">
-                                    <label>Project Manager</label>
-                                    <input type="text" id="ss-pm" placeholder="Enter project manager">
+                        <!-- Chooser screen -->
+                        <div class="rpt-chooser" id="ss-chooser"></div>
+                        <!-- Form (hidden until user picks new or existing) -->
+                        <div class="rpt-form-wrap" id="ss-form-wrap" style="display:none">
+                            <div class="rpt-form-topbar">
+                                <button class="rpt-back-btn" onclick="DCReports.showChooser('site-survey')"><i class="fas fa-arrow-left"></i> All Reports</button>
+                                <span id="ss-editing-label" class="rpt-editing-label"></span>
+                            </div>
+                            <div class="project-info-form">
+                                <h3><i class="fas fa-info-circle"></i> Project Information</h3>
+                                <div class="project-info-grid">
+                                    <div class="form-group">
+                                        <label>Project No.</label>
+                                        <input type="text" id="ss-projectNo" placeholder="Enter project number">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Project</label>
+                                        <input type="text" id="ss-project" placeholder="Enter project name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Location</label>
+                                        <input type="text" id="ss-location" placeholder="Enter location">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Surveyed By</label>
+                                        <input type="text" id="ss-surveyedBy" placeholder="Enter surveyor name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Date</label>
+                                        <input type="date" id="ss-date">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Company</label>
+                                        <input type="text" id="ss-company" placeholder="Enter company name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Designer / Architect</label>
+                                        <input type="text" id="ss-designer" placeholder="Enter designer/architect">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Project Manager</label>
+                                        <input type="text" id="ss-pm" placeholder="Enter project manager">
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div id="ss-floor-section"></div>
-                        <div id="ss-wall-section"></div>
-                        <div id="ss-other-section"></div>
-                        <div class="report-actions">
-                            <button class="btn-submit" id="ss-submit-btn"><i class="fas fa-paper-plane"></i> Submit Report</button>
-                            <button class="btn-pdf" id="ss-pdf-btn"><i class="fas fa-file-pdf"></i> Generate PDF</button>
-                            <button class="btn-save-draft" id="ss-draft-btn"><i class="fas fa-save"></i> Save Draft</button>
+                            <div id="ss-floor-section"></div>
+                            <div id="ss-wall-section"></div>
+                            <div id="ss-other-section"></div>
+                            <div class="report-actions">
+                                <button class="btn-submit" id="ss-submit-btn"><i class="fas fa-paper-plane"></i> Submit Report</button>
+                                <button class="btn-pdf" id="ss-pdf-btn"><i class="fas fa-file-pdf"></i> Generate PDF</button>
+                                <button class="btn-save-draft" id="ss-draft-btn"><i class="fas fa-save"></i> Save Draft</button>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Quality Checklist Panel -->
                     <div class="report-panel" id="qualityChecklistPanel">
-                        <div class="project-info-form">
-                            <h3><i class="fas fa-info-circle"></i> Project Information</h3>
-                            <div class="project-info-grid">
-                                <div class="form-group">
-                                    <label>Project</label>
-                                    <input type="text" id="qc-project" placeholder="Enter project name">
-                                </div>
-                                <div class="form-group">
-                                    <label>Floor</label>
-                                    <input type="text" id="qc-floor" placeholder="Enter floor">
-                                </div>
-                                <div class="form-group">
-                                    <label>Room</label>
-                                    <input type="text" id="qc-room" placeholder="Enter room/area">
-                                </div>
-                                <div class="form-group">
-                                    <label>DC Representative</label>
-                                    <input type="text" id="qc-representative" placeholder="Enter representative name">
-                                </div>
-                                <div class="form-group">
-                                    <label>Date</label>
-                                    <input type="date" id="qc-date">
+                        <div class="rpt-chooser" id="qc-chooser"></div>
+                        <div class="rpt-form-wrap" id="qc-form-wrap" style="display:none">
+                            <div class="rpt-form-topbar">
+                                <button class="rpt-back-btn" onclick="DCReports.showChooser('quality-checklist')"><i class="fas fa-arrow-left"></i> All Reports</button>
+                                <span id="qc-editing-label" class="rpt-editing-label"></span>
+                            </div>
+                            <div class="project-info-form">
+                                <h3><i class="fas fa-info-circle"></i> Project Information</h3>
+                                <div class="project-info-grid">
+                                    <div class="form-group">
+                                        <label>Project</label>
+                                        <input type="text" id="qc-project" placeholder="Enter project name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Floor</label>
+                                        <input type="text" id="qc-floor" placeholder="Enter floor">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Room</label>
+                                        <input type="text" id="qc-room" placeholder="Enter room/area">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>DC Representative</label>
+                                        <input type="text" id="qc-representative" placeholder="Enter representative name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Date</label>
+                                        <input type="date" id="qc-date">
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div id="qc-sections-container"></div>
-                        <div class="report-actions">
-                            <button class="btn-submit" id="qc-submit-btn"><i class="fas fa-paper-plane"></i> Submit Report</button>
-                            <button class="btn-pdf" id="qc-pdf-btn"><i class="fas fa-file-pdf"></i> Generate PDF</button>
-                            <button class="btn-save-draft" id="qc-draft-btn"><i class="fas fa-save"></i> Save Draft</button>
+                            <div id="qc-sections-container"></div>
+                            <div class="report-actions">
+                                <button class="btn-submit" id="qc-submit-btn"><i class="fas fa-paper-plane"></i> Submit Report</button>
+                                <button class="btn-pdf" id="qc-pdf-btn"><i class="fas fa-file-pdf"></i> Generate PDF</button>
+                                <button class="btn-save-draft" id="qc-draft-btn"><i class="fas fa-save"></i> Save Draft</button>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Site Progress Panel -->
                     <div class="report-panel" id="siteProgressPanel">
-                        <div class="project-info-form">
-                            <h3><i class="fas fa-info-circle"></i> Project Information</h3>
-                            <div class="project-info-grid">
-                                <div class="form-group">
-                                    <label>Project No.</label>
-                                    <input type="text" id="sp-projectNo" placeholder="Enter project number">
-                                </div>
-                                <div class="form-group">
-                                    <label>Project</label>
-                                    <input type="text" id="sp-project" placeholder="Enter project name">
-                                </div>
-                                <div class="form-group">
-                                    <label>Location</label>
-                                    <input type="text" id="sp-location" placeholder="Enter location">
-                                </div>
-                                <div class="form-group">
-                                    <label>Surveyed By</label>
-                                    <input type="text" id="sp-surveyedBy" placeholder="Enter name">
-                                </div>
-                                <div class="form-group">
-                                    <label>Date</label>
-                                    <input type="date" id="sp-date">
+                        <div class="rpt-chooser" id="sp-chooser"></div>
+                        <div class="rpt-form-wrap" id="sp-form-wrap" style="display:none">
+                            <div class="rpt-form-topbar">
+                                <button class="rpt-back-btn" onclick="DCReports.showChooser('site-progress')"><i class="fas fa-arrow-left"></i> All Reports</button>
+                                <span id="sp-editing-label" class="rpt-editing-label"></span>
+                            </div>
+                            <div class="project-info-form">
+                                <h3><i class="fas fa-info-circle"></i> Project Information</h3>
+                                <div class="project-info-grid">
+                                    <div class="form-group">
+                                        <label>Project No.</label>
+                                        <input type="text" id="sp-projectNo" placeholder="Enter project number">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Project</label>
+                                        <input type="text" id="sp-project" placeholder="Enter project name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Location</label>
+                                        <input type="text" id="sp-location" placeholder="Enter location">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Surveyed By</label>
+                                        <input type="text" id="sp-surveyedBy" placeholder="Enter name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Date</label>
+                                        <input type="date" id="sp-date">
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="progress-items-list" id="sp-items-list"></div>
-                        <button class="add-progress-item-btn" id="sp-add-item-btn">
-                            <i class="fas fa-plus"></i> Add Progress Item
-                        </button>
-                        <div class="report-actions">
-                            <button class="btn-submit" id="sp-submit-btn"><i class="fas fa-paper-plane"></i> Submit Report</button>
-                            <button class="btn-pdf" id="sp-pdf-btn"><i class="fas fa-file-pdf"></i> Generate PDF</button>
-                            <button class="btn-save-draft" id="sp-draft-btn"><i class="fas fa-save"></i> Save Draft</button>
+                            <div class="progress-items-list" id="sp-items-list"></div>
+                            <button class="add-progress-item-btn" id="sp-add-item-btn">
+                                <i class="fas fa-plus"></i> Add Progress Item
+                            </button>
+                            <div class="report-actions">
+                                <button class="btn-submit" id="sp-submit-btn"><i class="fas fa-paper-plane"></i> Submit Report</button>
+                                <button class="btn-pdf" id="sp-pdf-btn"><i class="fas fa-file-pdf"></i> Generate PDF</button>
+                                <button class="btn-save-draft" id="sp-draft-btn"><i class="fas fa-save"></i> Save Draft</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        <!-- Hidden file input for importing report JSON -->
+        <input type="file" id="rptImportInput" accept=".json" style="display:none">
     </div>
 
     <!-- Task Tracker Page -->
@@ -1272,18 +1337,12 @@
                         <div class="pr-dv-card">
                             <div class="pr-dv-card-title"><i class="fas fa-building"></i> Customer Information</div>
                             <table class="pr-dv-table">
+                                <tr><th>Company Name</th><td id="pdClientName"></td></tr>
                                 <tr><th>GSTN</th><td id="pdGSTN"></td></tr>
                                 <tr><th>Billing Address</th><td id="pdBillingAddress" style="white-space:pre-line;"></td></tr>
-                                <tr><th>Customer Name</th><td id="pdClientName"></td></tr>
-                                <tr><th>Location</th><td id="pdLocation"></td></tr>
-                                <tr><th>Area</th><td id="pdArea"></td></tr>
-                                <tr><th>Client Email</th><td id="pdClientEmail"></td></tr>
-                                <tr><th>Client Phone</th><td id="pdClientPhone"></td></tr>
                                 <tr class="pr-dv-section-divider"><td colspan="2"><span>Contact Details</span></td></tr>
                                 <tr><th>Contact Person</th><td id="pdContactPerson"></td></tr>
-                                <tr><th>Contact Mobile</th><td id="pdContactMobile"></td></tr>
-                                <tr><th>Contact Phone</th><td id="pdContactPhone"></td></tr>
-                                <tr><th>Contact Email</th><td id="pdContactEmail"></td></tr>
+                                <tr><th>Contact Details</th><td id="pdContactDetails"></td></tr>
                             </table>
                             <!-- Client Contacts (multiple) -->
                             <div id="pdClientContactsList" style="display:none; margin-top:10px;">
@@ -1297,6 +1356,9 @@
                                 <tr><th>Project Type</th><td id="pdProjectType"></td></tr>
                                 <tr><th>Booking Office</th><td id="pdBookingOffice"></td></tr>
                                 <tr><th>Size / UOM</th><td id="pdSize"></td></tr>
+                                <tr><th>PO Number</th><td id="pdPoNumber"></td></tr>
+                                <tr><th>PO Date</th><td id="pdPoDate"></td></tr>
+                                <tr class="pr-dv-section-divider"><td colspan="2"><span>Dates</span></td></tr>
                                 <tr><th>Start</th><td id="pdStartDate"></td></tr>
                                 <tr><th>Expected Completion</th><td id="pdEndDate"></td></tr>
                                 <tr><th>Duration (Days)</th><td id="pdDuration"></td></tr>
@@ -1306,45 +1368,12 @@
                                 <tr class="pr-dv-section-divider"><td colspan="2"><span>Site Contact</span></td></tr>
                                 <tr><th>Site Contact Person</th><td id="pdSiteContactPerson"></td></tr>
                                 <tr><th>Site Contact Details</th><td id="pdSiteContactDetails"></td></tr>
-                                <tr><th>Site Contact Email</th><td id="pdSiteContactEmail"></td></tr>
+                                <tr><th>Ship To GSTN</th><td id="pdShipToGstin"></td></tr>
                             </table>
                         </div>
                     </div>
 
-                    <!-- Section 1b: Admin Financial Info (admin-only) -->
-                    <div class="pr-dv-card pr-admin-card">
-                        <div class="pr-dv-card-title"><i class="fas fa-rupee-sign"></i> Financial Overview</div>
-                        <table class="pr-dv-table">
-                            <tr><th>Currency</th><td id="pdCurrency"></td></tr>
-                            <tr><th>Project Value</th><td id="pdProjectValue"></td></tr>
-                            <tr><th>Consultancy %</th><td id="pdConsultancyPct"></td></tr>
-                            <tr><th>Handover Date</th><td id="pdHandoverDate"></td></tr>
-                            <tr><th>Doc Folder</th><td id="pdDocFolder"></td></tr>
-                        </table>
-                    </div>
-
-                    <!-- Section 2: Description -->
-                    <div class="pr-dv-card">
-                        <div class="pr-dv-card-title"><i class="fas fa-align-left"></i> Description</div>
-                        <div class="pr-dv-desc" id="pdDesc"></div>
-                        <div class="pr-admin-row" id="pdNotesRow">
-                            <div class="pr-dv-sub-title">Project Notes</div>
-                            <div class="pr-dv-desc" id="pdNotes"></div>
-                        </div>
-                    </div>
-
-                    <!-- Section 3: Retention Policy (admin only) -->
-                    <div class="pr-dv-card pr-admin-card" id="pdRetentionCard">
-                        <div class="pr-dv-card-title"><i class="fas fa-shield-alt"></i> Retention Policy</div>
-                        <table class="pr-dv-table">
-                            <tr><th>Retention Amount</th><td id="pdRetentionAmount"></td></tr>
-                            <tr><th>Retention Period</th><td id="pdRetentionPeriod"></td></tr>
-                            <tr><th>Retention Due Date</th><td id="pdRetentionDueDate"></td></tr>
-                            <tr><th>Retention Terms</th><td id="pdRetentionDesc"></td></tr>
-                        </table>
-                    </div>
-
-                    <!-- Section 4: Team + Tasks -->
+                    <!-- Section 2: Team + Tasks -->
                     <div class="pr-dv-grid-2">
                         <div class="pr-dv-card">
                             <div class="pr-dv-card-title pr-section-with-btn">
@@ -1460,6 +1489,10 @@
                     <button class="pr-modal-close" id="prFormClose"><i class="fas fa-times"></i></button>
                 </div>
                 <form id="prForm">
+                    <!-- Hidden fields to preserve data not shown in UI -->
+                    <input type="hidden" name="prDesc">
+                    <input type="hidden" name="prPhase" value="concept">
+                    <input type="hidden" name="prStatus" value="active">
                     <div class="pr-form-body">
 
                         <!-- Full Add Project label -->
@@ -1493,14 +1526,14 @@
                                         </label>
                                     </div>
                                     <div class="pr-form-grid" style="margin-top:12px;">
-                                        <div class="pr-form-group">
+                                        <div class="pr-form-group" id="prGSTINGroup">
                                             <label class="pr-form-label">Customer GSTN :</label>
-                                            <input name="prCustomerGSTIN" id="prGSTINInput" class="pr-form-input" placeholder="Customer Name" maxlength="15">
+                                            <input name="prCustomerGSTIN" id="prGSTINInput" class="pr-form-input" placeholder="Enter GSTIN" maxlength="15">
                                             <span class="pr-form-hint" id="prGSTINHint">Enter GSTIN to search or add new customer</span>
                                         </div>
-                                        <div class="pr-form-group">
+                                        <div class="pr-form-group" id="prClientGroup" style="display:none;">
                                             <label class="pr-form-label">Customer Name *</label>
-                                            <input name="prClient" class="pr-form-input" placeholder="Customer Name" required maxlength="200">
+                                            <input name="prClient" class="pr-form-input" placeholder="Customer Name" maxlength="200">
                                         </div>
                                     </div>
                                     <div class="pr-search-btn-row">
@@ -1510,28 +1543,22 @@
                                     </div>
                                 </div>
 
-                                <!-- Customer contact + billing -->
+                                <!-- PO Details -->
                                 <div class="pr-form-grid" style="margin-top:16px;">
                                     <div class="pr-form-group">
-                                        <label class="pr-form-label">Client Email</label>
-                                        <input name="prClientEmail" class="pr-form-input" type="email" placeholder="client@email.com">
+                                        <label class="pr-form-label">PO Number</label>
+                                        <input name="prPoNumber" class="pr-form-input" placeholder="Purchase Order Number" maxlength="100">
                                     </div>
                                     <div class="pr-form-group">
-                                        <label class="pr-form-label">Client Phone</label>
-                                        <input name="prClientPhone" class="pr-form-input" placeholder="+91 98765 43210">
+                                        <label class="pr-form-label">PO Date</label>
+                                        <input name="prPoDate" class="pr-form-input" type="date">
                                     </div>
-                                    <div class="pr-form-group full">
-                                        <label class="pr-form-label">Billing Address</label>
-                                        <textarea name="prBillingAddress" class="pr-form-textarea" rows="2" placeholder="Customer billing address…" maxlength="500"></textarea>
-                                    </div>
-                                    <div class="pr-form-group">
-                                        <label class="pr-form-label">Location</label>
-                                        <input name="prLocation" class="pr-form-input" placeholder="e.g. Koregaon Park, Pune" maxlength="300">
-                                    </div>
-                                    <div class="pr-form-group">
-                                        <label class="pr-form-label">Area (sq ft)</label>
-                                        <input name="prArea" class="pr-form-input" type="number" placeholder="4500" min="0">
-                                    </div>
+                                </div>
+
+                                <!-- Billing Address -->
+                                <div class="pr-form-group full" style="margin-top:12px;">
+                                    <label class="pr-form-label">Billing Address</label>
+                                    <textarea name="prBillingAddress" class="pr-form-textarea" placeholder="Customer billing address" maxlength="500" rows="3"></textarea>
                                 </div>
 
                             </div>
@@ -1545,8 +1572,21 @@
                             </div>
                             <div class="pr-step-body">
 
-                                <!-- Row 1: Booking Office | [empty] | Date -->
-                                <div class="pr-form-grid pr-form-grid-3">
+                                <!-- Row 0: Project Type | Booking Office -->
+                                <div class="pr-form-grid">
+                                    <div class="pr-form-group">
+                                        <label class="pr-form-label">Project Type</label>
+                                        <select name="prProjectType" class="pr-form-select">
+                                            <option value="">-- Select Type --</option>
+                                            <option value="Interior Design">Interior Design</option>
+                                            <option value="Architecture">Architecture</option>
+                                            <option value="Landscape">Landscape</option>
+                                            <option value="Renovation">Renovation</option>
+                                            <option value="Turnkey">Turnkey</option>
+                                            <option value="Consultation">Consultation</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
                                     <div class="pr-form-group">
                                         <label class="pr-form-label">Booking Office</label>
                                         <select name="prBookingOffice" class="pr-form-select">
@@ -1563,47 +1603,25 @@
                                         </select>
                                     </div>
                                     <div class="pr-form-group">
-                                        <label class="pr-form-label">Project Type</label>
-                                        <select name="prProjectType" class="pr-form-select">
-                                            <option value="">-- Select Type --</option>
-                                            <option value="Residential">Residential</option>
-                                            <option value="Commercial">Commercial</option>
-                                            <option value="Hospitality">Hospitality</option>
-                                            <option value="Institutional">Institutional</option>
-                                            <option value="Industrial">Industrial</option>
-                                            <option value="Design and Build">Design and Build</option>
-                                            <option value="Others">Others</option>
-                                        </select>
-                                    </div>
-                                    <div class="pr-form-group">
-                                        <label class="pr-form-label">Date</label>
+                                        <label class="pr-form-label">Expected Completion Date</label>
                                         <input name="prEndDate" id="prEndDate" class="pr-form-input" type="date">
                                     </div>
                                 </div>
 
-                                <!-- Row 2: Project Start Date | Project Start Code -->
+                                <!-- Row 2: Project Start Date -->
                                 <div class="pr-form-grid">
                                     <div class="pr-form-group">
                                         <label class="pr-form-label">Project Start Date</label>
                                         <input name="prStartDate" id="prStartDate" class="pr-form-input" type="date">
                                     </div>
                                     <div class="pr-form-group">
-                                        <label class="pr-form-label">Project Start Code</label>
-                                        <input name="prProjectRefCode" class="pr-form-input" placeholder="e.g. DC-HYD-2025" maxlength="50">
-                                    </div>
-                                </div>
-
-                                <!-- Row 3: Expected Duration (auto) + Days (readonly) -->
-                                <div class="pr-form-grid">
-                                    <div class="pr-form-group">
-                                        <label class="pr-form-label">Expected Duration</label>
-                                        <input name="prExpectedDurationText" id="prExpectedDurationText" class="pr-form-input pr-input-readonly" readonly placeholder="Auto-calculated">
-                                        <span class="pr-form-hint">Calculated from Start Date to Date</span>
-                                    </div>
-                                    <div class="pr-form-group">
                                         <label class="pr-form-label">Expected Duration (Days)</label>
                                         <input name="prExpectedDuration" id="prExpectedDuration" class="pr-form-input pr-input-readonly" readonly placeholder="Auto-calculated">
                                     </div>
+                                </div>
+
+                                <!-- Row 3: Size | Unit of Measurement -->
+                                <div class="pr-form-grid">
                                     <div class="pr-form-group">
                                         <label class="pr-form-label">Size</label>
                                         <input name="prSize" class="pr-form-input" type="number" placeholder="0" min="0" step="0.01">
@@ -1619,11 +1637,11 @@
                                 <div class="pr-form-grid">
                                     <div class="pr-form-group">
                                         <label class="pr-form-label">Site Name</label>
-                                        <input name="prSiteName" class="pr-form-input" placeholder="Site / property name" maxlength="200">
+                                        <input name="prSiteName" class="pr-form-input" placeholder="Name of the site" maxlength="200">
                                     </div>
                                     <div class="pr-form-group full">
                                         <label class="pr-form-label">Site Address</label>
-                                        <textarea name="prSiteAddress" class="pr-form-textarea" rows="2" placeholder="Full site address…" maxlength="500"></textarea>
+                                        <textarea name="prSiteAddress" class="pr-form-textarea" placeholder="Full site address" maxlength="500" rows="2"></textarea>
                                     </div>
                                 </div>
 
@@ -1653,6 +1671,10 @@
                                     <div class="pr-form-group full">
                                         <label class="pr-form-label">Document Folder Path</label>
                                         <input name="prDocFolderPath" class="pr-form-input" placeholder="Network path for project documents" maxlength="500">
+                                    </div>
+                                    <div class="pr-form-group full">
+                                        <label class="pr-form-label">Ship To GSTN</label>
+                                        <input name="prShipToGstin" class="pr-form-input" placeholder="Ship To GSTN" maxlength="15">
                                     </div>
                                 </div>
 
@@ -1823,12 +1845,35 @@
             </header>
 
             <!-- Filter bar -->
-            <div class="tm-filters">
-                <button class="tm-filter-btn active" data-dept="all">All</button>
-                <button class="tm-filter-btn" data-dept="Design">Design</button>
-                <button class="tm-filter-btn" data-dept="Project Management">Project Management</button>
-                <button class="tm-filter-btn" data-dept="Administration">Administration</button>
-                <button class="tm-filter-btn" data-dept="Accounts">Accounts</button>
+            <div class="tm-toolbar">
+                <div class="tm-filters">
+                    <button class="tm-filter-btn active" data-dept="all">All</button>
+                    <button class="tm-filter-btn" data-dept="Design">Design</button>
+                    <button class="tm-filter-btn" data-dept="Project Management">Project Management</button>
+                    <button class="tm-filter-btn" data-dept="Administration">Administration</button>
+                    <button class="tm-filter-btn" data-dept="Accounts">Accounts</button>
+                </div>
+                <div class="tm-search-row">
+                    <div class="tm-search-wrap">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="tmSearch" placeholder="Search by name…" autocomplete="off">
+                    </div>
+                    <div class="tm-office-wrap">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <select id="tmOfficeFilter">
+                            <option value="all">All Offices</option>
+                            <option value="Bengaluru">Bengaluru</option>
+                            <option value="Bhopal">Bhopal</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="Gurugram">Gurugram</option>
+                            <option value="Head Office">Head Office</option>
+                            <option value="Hyderabad">Hyderabad</option>
+                            <option value="Kolkata">Kolkata</option>
+                            <option value="Mohali">Mohali</option>
+                            <option value="Mumbai">Mumbai</option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
             <!-- Body -->
@@ -1880,6 +1925,21 @@
                             <div class="tm-form-group">
                                 <label class="tm-form-label">Joining Date</label>
                                 <input id="tmJoined" name="tmJoined" class="tm-form-input" type="date">
+                            </div>
+                            <div class="tm-form-group full">
+                                <label class="tm-form-label">Office Location</label>
+                                <select id="tmOffice" name="tmOffice" class="tm-form-input">
+                                    <option value="">-- Select Office --</option>
+                                    <option value="Bengaluru">Bengaluru</option>
+                                    <option value="Bhopal">Bhopal</option>
+                                    <option value="Delhi">Delhi</option>
+                                    <option value="Gurugram">Gurugram</option>
+                                    <option value="Head Office">Head Office</option>
+                                    <option value="Hyderabad">Hyderabad</option>
+                                    <option value="Kolkata">Kolkata</option>
+                                    <option value="Mohali">Mohali</option>
+                                    <option value="Mumbai">Mumbai</option>
+                                </select>
                             </div>
                             <div class="tm-form-group full">
                                 <label class="tm-form-label">Skills</label>
@@ -2108,33 +2168,66 @@
                 <div class="lv-section">
                     <h2 class="lv-section-title"><i class="fas fa-paper-plane"></i> Apply for Leave</h2>
                     <form id="lvApplyForm" class="lv-form">
-                        <div class="lv-form-row">
+                        <!-- Full-day row: Type | From | To | Next Joining | No Days -->
+                        <div id="lvFullDayFields" class="lv-form-row">
                             <div class="lv-form-group">
-                                <label>Select Type of Leave</label>
+                                <label>Type of Leave</label>
                                 <select id="lvLeaveType" required>
                                     <option value="">Select...</option>
                                     <option value="CL">Casual Leave (CL)</option>
                                     <option value="PL">Privilege Leave (PL)</option>
                                     <option value="SL">Sick Leave (SL)</option>
+                                    <option value="SHR">Short Leave (SHR)</option>
                                 </select>
                             </div>
                             <div class="lv-form-group">
                                 <label>From</label>
-                                <input type="date" id="lvFromDate" required>
+                                <input type="date" id="lvFromDate">
                             </div>
                             <div class="lv-form-group">
                                 <label>To</label>
-                                <input type="date" id="lvToDate" required>
+                                <input type="date" id="lvToDate">
                             </div>
                             <div class="lv-form-group">
                                 <label>Next Joining Date</label>
                                 <input type="date" id="lvNextJoining">
                             </div>
                             <div class="lv-form-group">
-                                <label>No of Days</label>
+                                <label>No. of Days</label>
                                 <input type="number" id="lvNoDays" value="0.5" min="0.5" step="0.5" placeholder="0.5">
                             </div>
                         </div>
+
+                        <!-- Short leave row: Type | Date | From Time | To Time | Duration (same grid) -->
+                        <div id="lvShortLeaveFields" class="lv-form-row" style="display:none">
+                            <div class="lv-form-group">
+                                <label>Type of Leave</label>
+                                <select id="lvLeaveTypeShr">
+                                    <option value="">Select...</option>
+                                    <option value="CL">Casual Leave (CL)</option>
+                                    <option value="PL">Privilege Leave (PL)</option>
+                                    <option value="SL">Sick Leave (SL)</option>
+                                    <option value="SHR" selected>Short Leave (SHR)</option>
+                                </select>
+                            </div>
+                            <div class="lv-form-group">
+                                <label>Date</label>
+                                <input type="date" id="lvShrDate">
+                            </div>
+                            <div class="lv-form-group">
+                                <label>From Time</label>
+                                <input type="time" id="lvFromTime">
+                            </div>
+                            <div class="lv-form-group">
+                                <label>To Time <small style="color:#aaa">(max 2 hrs)</small></label>
+                                <input type="time" id="lvToTime">
+                            </div>
+                            <div class="lv-form-group">
+                                <label>Duration</label>
+                                <input type="text" id="lvDuration" class="lv-duration-display" readonly placeholder="—">
+                            </div>
+                        </div>
+
                         <div class="lv-form-group">
                             <label>Remarks</label>
                             <textarea id="lvRemarks" placeholder="Enter reason for leave..."></textarea>
@@ -2219,14 +2312,16 @@
                     </button>
                     <button class="cal-today-btn" id="calTodayBtn">Today</button>
                     <div class="cal-legend">
-                        <span class="cal-legend-item"><span class="cal-dot cal-dot-google"></span>Google</span>
-                        <span class="cal-legend-item"><span class="cal-dot cal-dot-meeting"></span>Meeting</span>
-                        <span class="cal-legend-item"><span class="cal-dot cal-dot-task"></span>Task</span>
+                        <span class="cal-legend-item leg-google"><span class="cal-dot cal-dot-google"></span>Google</span>
+                        <span class="cal-legend-item leg-meeting"><span class="cal-dot cal-dot-meeting"></span>Meeting</span>
+                        <span class="cal-legend-item leg-task"><span class="cal-dot cal-dot-task"></span>Task</span>
                     </div>
                 </div>
 
-                <div class="cal-grid" id="calGrid">
-                    <!-- Day headers and cells rendered by JS -->
+                <div class="cal-grid-card">
+                    <div class="cal-grid" id="calGrid">
+                        <!-- Day headers and cells rendered by JS -->
+                    </div>
                 </div>
             </div>
         </div>

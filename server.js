@@ -42,6 +42,7 @@ const USERS_PATH          = path.join(DATA_DIR, 'users.json');
 const PROJECTS_PATH       = path.join(DATA_DIR, 'projects.json');
 const TEAM_PATH           = path.join(DATA_DIR, 'team.json');
 const APPROVALS_PATH      = path.join(DATA_DIR, 'approvals.json');
+const ATTENDANCE_PATH     = path.join(DATA_DIR, 'attendance.json');
 
 // ── Session store & rate limiter (in-memory) ───────────────────────────────
 const sessions   = new Map(); // token → { userId, name, email, role, expiresAt }
@@ -156,6 +157,7 @@ const loadUsers          = () => readJSON(USERS_PATH,          { users: [], next
 const loadProjects       = () => readJSON(PROJECTS_PATH,       { projects: [], nextId: 1 });
 const loadTeam           = () => readJSON(TEAM_PATH,           { members: [], nextId: 1 });
 const loadApprovals      = () => readJSON(APPROVALS_PATH,      { approvals: [], nextId: 1 });
+const loadAttendance     = () => readJSON(ATTENDANCE_PATH,     { records: [],   nextId: 1 });
 
 const saveMeetings       = d => writeJSON(MEETINGS_PATH,       d);
 const saveEmployees      = d => writeJSON(EMPLOYEES_PATH,      d);
@@ -647,16 +649,34 @@ async function handleAPI(req, res, pathname, query) {
         return;
     }
 
-    // ── Employees: Search ─────────────────────────────────────────────────
+    // ── Employees: Search (searches team members by name/email) ───────────
     if (pathname === '/api/employees/search' && req.method === 'GET') {
         try {
             const q = (query.q || '').toLowerCase().slice(0, 100);
-            const { employees } = await loadEmployees();
-            const filtered = employees
-                .filter(e => e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q))
+            const { members } = await loadTeam();
+            const filtered = members
+                .filter(m => m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q))
                 .map(({ id, name, email, department, designation }) => ({ id, name, email, department, designation }));
             sendJSON(res, req, { employees: filtered });
         } catch (error) { sendJSON(res, req, { error: 'Failed to search employees' }, 500); }
+        return;
+    }
+
+    // ── Projects: Client list (for meeting participant picker) ─────────────
+    if (pathname === '/api/projects/clients' && req.method === 'GET') {
+        try {
+            const { projects } = await loadProjects();
+            const clients = projects
+                .filter(p => p.client_email)
+                .map(p => ({
+                    project_id:   p.id,
+                    project_code: p.code || '',
+                    project_name: p.name,
+                    client_name:  p.client  || '',
+                    client_email: p.client_email
+                }));
+            sendJSON(res, req, { clients });
+        } catch (e) { sendJSON(res, req, { error: 'Failed to load project clients' }, 500); }
         return;
     }
 
@@ -1278,19 +1298,86 @@ async function handleAPI(req, res, pathname, query) {
             const session = requireAuth(req);
             const year = parseInt(query.year) || new Date().getFullYear();
             const data = await loadLeaves();
+            const now = new Date();
+            const thisMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
             const summary = data.allocations
                 .filter(a => a.year === year)
                 .map(alloc => {
                     const showAllSummary = isAdminOrManager(session) && query.all === '1';
-                    const reqs = showAllSummary
-                        ? data.requests.filter(r => r.type === alloc.type && r.from_date?.startsWith(String(year)))
-                        : data.requests.filter(r => r.type === alloc.type && r.user_id === session.userId && r.from_date?.startsWith(String(year)));
-                    const pending  = reqs.filter(r => r.status === 'pending').reduce((s, r) => s + r.no_days, 0);
-                    const approved = reqs.filter(r => r.status === 'approved').reduce((s, r) => s + r.no_days, 0);
-                    return { type: alloc.type, label: alloc.label, allocated: alloc.allocated, pending, approved, balance: alloc.allocated - approved };
+                    const isMonthly = alloc.per === 'month';
+
+                    // For monthly (SHR): count occurrences this month; for annual: sum no_days this year
+                    if (isMonthly) {
+                        const monthReqs = showAllSummary
+                            ? data.requests.filter(r => r.type === alloc.type && r.from_date?.startsWith(thisMonthStr))
+                            : data.requests.filter(r => r.type === alloc.type && r.user_id === session.userId && r.from_date?.startsWith(thisMonthStr));
+                        const pending  = monthReqs.filter(r => r.status === 'pending').length;
+                        const approved = monthReqs.filter(r => r.status === 'approved').length;
+                        return { type: alloc.type, label: alloc.label, allocated: alloc.allocated,
+                                 per: 'month', pending, approved, balance: Math.max(0, alloc.allocated - approved) };
+                    } else {
+                        const reqs = showAllSummary
+                            ? data.requests.filter(r => r.type === alloc.type && r.from_date?.startsWith(String(year)))
+                            : data.requests.filter(r => r.type === alloc.type && r.user_id === session.userId && r.from_date?.startsWith(String(year)));
+                        const pending  = reqs.filter(r => r.status === 'pending').reduce((s, r) => s + (r.no_days || 0), 0);
+                        const approved = reqs.filter(r => r.status === 'approved').reduce((s, r) => s + (r.no_days || 0), 0);
+                        return { type: alloc.type, label: alloc.label, allocated: alloc.allocated,
+                                 per: 'year', pending, approved, balance: alloc.allocated - approved };
+                    }
                 });
             sendJSON(res, req, { summary });
         } catch (error) { sendJSON(res, req, { error: 'Failed to load leave summary' }, 500); }
+        return;
+    }
+
+    // ── Attendance: Monthly Summary ───────────────────────────────────────
+    if (pathname === '/api/attendance/monthly-summary' && req.method === 'GET') {
+        try {
+            const session = requireAuth(req);
+            if (!session) { sendJSON(res, req, { error: 'Unauthorized' }, 401); return; }
+
+            const now   = new Date();
+            const year  = now.getFullYear();
+            const month = now.getMonth(); // 0-indexed
+
+            // Count Mon–Fri working days from 1st to today
+            let workingDays = 0;
+            for (let d = 1; d <= now.getDate(); d++) {
+                const wd = new Date(year, month, d).getDay();
+                if (wd !== 0 && wd !== 6) workingDays++;
+            }
+
+            // Approved leave days this month for current user
+            const leavesData = await loadLeaves();
+            const monthStr   = `${year}-${String(month + 1).padStart(2, '0')}`;
+            let leavesTaken  = 0;
+            (leavesData.requests || []).forEach(r => {
+                if (r.user_id !== session.userId || r.status !== 'approved') return;
+                const from = new Date(r.from_date);
+                const to   = new Date(r.to_date);
+                for (let d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
+                    if (d.getFullYear() === year && d.getMonth() === month) {
+                        const wd = d.getDay();
+                        if (wd !== 0 && wd !== 6) leavesTaken++;
+                    }
+                }
+            });
+
+            // Late days this month for current user
+            const attData = await loadAttendance();
+            const daysLate = (attData.records || []).filter(r =>
+                r.user_id === session.userId &&
+                typeof r.date === 'string' &&
+                r.date.startsWith(monthStr) &&
+                r.late === true
+            ).length;
+
+            const present = Math.max(0, workingDays - leavesTaken);
+            const monthLabel = now.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+
+            sendJSON(res, req, { workingDays, present, leavesTaken, daysLate, monthLabel });
+        } catch (err) { sendJSON(res, req, { error: 'Failed to load attendance summary' }, 500); }
         return;
     }
 
@@ -1316,14 +1403,55 @@ async function handleAPI(req, res, pathname, query) {
         try {
             const session = requireAuth(req);
             const body = await parseBody(req);
-            const types = ['CL', 'PL', 'SL'];
-            if (!types.includes(body.type))   { sendJSON(res, req, { error: 'Invalid leave type. Use CL, PL or SL' }, 400); return; }
+            const types = ['CL', 'PL', 'SL', 'SHR'];
+            if (!types.includes(body.type))   { sendJSON(res, req, { error: 'Invalid leave type. Use CL, PL, SL or SHR' }, 400); return; }
             if (!isDate(body.from_date))      { sendJSON(res, req, { error: 'Valid from_date (YYYY-MM-DD) is required' }, 400); return; }
+
+            const data = await loadLeaves();
+
+            // ── Short Leave (SHR) validation ──────────────────────────────
+            if (body.type === 'SHR') {
+                const timeRx = /^([01]\d|2[0-3]):([0-5]\d)$/;
+                if (!timeRx.test(body.from_time)) { sendJSON(res, req, { error: 'Valid from_time (HH:MM) is required for Short Leave' }, 400); return; }
+                if (!timeRx.test(body.to_time))   { sendJSON(res, req, { error: 'Valid to_time (HH:MM) is required for Short Leave' }, 400); return; }
+                const [fh, fm] = body.from_time.split(':').map(Number);
+                const [th, tm] = body.to_time.split(':').map(Number);
+                const durationMins = (th * 60 + tm) - (fh * 60 + fm);
+                if (durationMins <= 0)   { sendJSON(res, req, { error: 'to_time must be after from_time' }, 400); return; }
+                if (durationMins >= 120) { sendJSON(res, req, { error: 'Short leave duration must be less than 2 hours' }, 400); return; }
+
+                // Check monthly quota
+                const monthStr = body.from_date.substring(0, 7);
+                const usedCount = data.requests.filter(r =>
+                    r.user_id === session.userId && r.type === 'SHR' &&
+                    r.from_date?.startsWith(monthStr) && r.status !== 'rejected'
+                ).length;
+                const alloc = data.allocations.find(a => a.type === 'SHR' && a.year === new Date().getFullYear());
+                const limit = alloc ? alloc.allocated : 2;
+                if (usedCount >= limit) {
+                    sendJSON(res, req, { error: `Monthly short leave limit of ${limit} already reached for this month` }, 400);
+                    return;
+                }
+
+                const durationHours = parseFloat((durationMins / 60).toFixed(2));
+                const newLeave = {
+                    id: data.nextId++, user_id: session.userId, employee_name: session.name || '',
+                    type: 'SHR', from_date: body.from_date, to_date: body.from_date,
+                    from_time: body.from_time, to_time: body.to_time, duration_hours: durationHours,
+                    no_days: 0, reason: isStr(body.reason, 500) ? body.reason.trim() : '',
+                    status: 'pending', approver_comments: '', created_at: new Date().toISOString()
+                };
+                data.requests.push(newLeave);
+                await saveLeaves(data);
+                sendJSON(res, req, { success: true, leave: newLeave }, 201);
+                return;
+            }
+
+            // ── Full-day leave (CL / PL / SL) validation ──────────────────
             if (!isDate(body.to_date))        { sendJSON(res, req, { error: 'Valid to_date (YYYY-MM-DD) is required' }, 400); return; }
             if (body.to_date < body.from_date){ sendJSON(res, req, { error: 'to_date cannot be before from_date' }, 400); return; }
             const noDays = parseFloat(body.no_days);
             if (!isNum(noDays) || noDays <= 0){ sendJSON(res, req, { error: 'no_days must be a positive number' }, 400); return; }
-            const data = await loadLeaves();
             const newLeave = {
                 id: data.nextId++,
                 user_id: session.userId,
@@ -1440,6 +1568,9 @@ async function handleAPI(req, res, pathname, query) {
                 status: ['active','on-hold','completed'].includes(body.status) ? body.status : 'active',
                 // Admin-only fields
                 customer_gstin:          isStr(body.customer_gstin, 15)   ? body.customer_gstin.trim()   : '',
+                po_number:               isStr(body.po_number, 100)        ? body.po_number.trim()        : '',
+                po_date:                 isDate(body.po_date)              ? body.po_date                 : null,
+                ship_to_gstin:           isStr(body.ship_to_gstin, 15)    ? body.ship_to_gstin.trim()    : '',
                 billing_address:         isStr(body.billing_address, 500)  ? body.billing_address.trim()  : '',
                 project_type:            isStr(body.project_type, 50)      ? body.project_type.trim()     : '',
                 booking_office:          isStr(body.booking_office, 100) ? body.booking_office.trim()  : '',
@@ -1522,6 +1653,9 @@ async function handleAPI(req, res, pathname, query) {
             if (['active','on-hold','completed'].includes(body.status)) p.status = body.status;
             // Admin-only fields
             if (body.customer_gstin   !== undefined) p.customer_gstin   = isStr(body.customer_gstin, 15)   ? body.customer_gstin.trim()   : '';
+            if (body.po_number        !== undefined) p.po_number        = isStr(body.po_number, 100)        ? body.po_number.trim()        : '';
+            if (body.po_date          !== undefined) p.po_date          = isDate(body.po_date)              ? body.po_date                 : null;
+            if (body.ship_to_gstin    !== undefined) p.ship_to_gstin    = isStr(body.ship_to_gstin, 15)    ? body.ship_to_gstin.trim()    : '';
             if (body.billing_address  !== undefined) p.billing_address  = isStr(body.billing_address, 500) ? body.billing_address.trim()  : '';
             if (body.project_type     !== undefined) p.project_type     = isStr(body.project_type, 50)     ? body.project_type.trim()     : '';
             if (body.booking_office   !== undefined) p.booking_office   = isStr(body.booking_office, 100)  ? body.booking_office.trim()   : '';
@@ -1657,6 +1791,7 @@ async function handleAPI(req, res, pathname, query) {
             const data = await loadTeam();
             let members = data.members;
             if (query.department) members = members.filter(m => m.department === query.department);
+            if (query.office)     members = members.filter(m => m.office === query.office);
             const page = paginate(members, query);
             sendJSON(res, req, { members: page.data, total: page.total });
         } catch (e) { sendJSON(res, req, { error: 'Failed to load team' }, 500); }
@@ -1678,6 +1813,7 @@ async function handleAPI(req, res, pathname, query) {
                 department:  isStr(body.department, 100) ? body.department.trim() : 'Design',
                 email:       body.email.trim(),
                 phone:       isStr(body.phone, 30) ? body.phone.trim() : '',
+                office:      isStr(body.office, 100) ? body.office.trim() : '',
                 skills:      Array.isArray(body.skills) ? body.skills.filter(s => isStr(s, 50)).map(s => s.trim()).slice(0, 20) : [],
                 joined_date: isDate(body.joined_date) ? body.joined_date : null,
                 created_at:  new Date().toISOString()
@@ -1713,6 +1849,7 @@ async function handleAPI(req, res, pathname, query) {
             if (isStr(body.department, 100))  m.department  = body.department.trim();
             if (isEmail(body.email))          m.email       = body.email.trim();
             if (isStr(body.phone, 30))        m.phone       = body.phone.trim();
+            if (isStr(body.office, 100))      m.office      = body.office.trim();
             if (Array.isArray(body.skills))   m.skills      = body.skills.filter(s => isStr(s, 50)).map(s => s.trim()).slice(0, 20);
             if (isDate(body.joined_date))     m.joined_date = body.joined_date;
             await saveTeam(data);

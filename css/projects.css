@@ -301,7 +301,7 @@
     flex-shrink: 0;
 }
 .pr-modal-code  { font-size: 11px; color: #888; font-weight: 600; letter-spacing: .5px; margin-bottom: 3px; }
-.pr-modal-title { font-size: 20px; font-weight: 700; color: #333; }
+.pr-modal-title { font-size: 1.125rem; font-weight: 700; color: #333; }
 .pr-modal-client{ font-size: 13px; color: #888; margin-top: 2px; }
 .pr-modal-close {
     background: #f5f5f5; border: none;
@@ -438,7 +438,7 @@
 /* mini-modals (Add Member / Assign Task) */
 .pr-mini-modal-overlay { z-index: 1100; }
 .pr-mini-modal {
-    background: white; border-radius: 14px;
+    background: white; border-radius: 16px;
     width: 100%; max-width: 400px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.18);
     overflow: hidden;
@@ -890,7 +890,9 @@
 .pr-detail-view.admin .pr-admin-row { display: table-row; }
 .pr-detail-view.admin .pr-admin-card { display: block; }
 
-/* Delete button hidden for non-admin */
+/* Edit & Delete buttons hidden for non-admin */
+#pdEditBtn { display: none; }
+.pr-detail-view.admin #pdEditBtn { display: inline-flex; }
 #pdDeleteBtn { display: none; }
 .pr-detail-view.admin #pdDeleteBtn { display: inline-flex; }
 

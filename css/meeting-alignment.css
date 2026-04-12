@@ -63,7 +63,7 @@
 }
 
 #meetingAlignmentPage .page-title {
-    font-size: 20px;
+    font-size: 1.3rem;
     font-weight: 600;
     color: #333;
     margin: 0;
@@ -147,7 +147,7 @@
 /* Tab Content Container */
 #meetingAlignmentPage .tab-content {
     background: white;
-    border-radius: 15px;
+    border-radius: 16px;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
     padding: 30px;
 }
@@ -303,6 +303,75 @@
 #meetingAlignmentPage .search-result-item .email {
     font-size: 12px;
     color: #888;
+}
+
+/* Client from Project Picker */
+#meetingAlignmentPage .client-from-project {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#meetingAlignmentPage .client-from-project select {
+    flex: 1;
+    padding: 12px 15px;
+    border: 2px solid #eee;
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    background: #fff;
+    cursor: pointer;
+    box-sizing: border-box;
+    color: #374151;
+}
+
+#meetingAlignmentPage .client-from-project select:focus {
+    outline: none;
+    border-color: #eb7846;
+}
+
+#meetingAlignmentPage #projectClientPreview {
+    margin-top: 10px;
+}
+
+#meetingAlignmentPage .client-preview {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #fef3e8;
+    border: 1px solid #f7c99a;
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+#meetingAlignmentPage .client-preview i {
+    font-size: 22px;
+    color: #eb7846;
+    flex-shrink: 0;
+}
+
+#meetingAlignmentPage .client-preview-name {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+#meetingAlignmentPage .client-preview-email {
+    color: #6b7280;
+    font-size: 12px;
+    margin-top: 1px;
+}
+
+#meetingAlignmentPage .client-preview-project {
+    color: #9ca3af;
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+/* Client chip */
+#meetingAlignmentPage .participant-chip.client {
+    background: #ecfdf5;
+    color: #065f46;
 }
 
 /* External Participant Input */

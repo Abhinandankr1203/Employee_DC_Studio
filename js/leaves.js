@@ -41,20 +41,26 @@ const DCLeaves = (function () {
 
     function cacheElements() {
         els = {
-            summaryBody:  document.getElementById('lvSummaryBody'),
-            summaryYear:  document.getElementById('lvSummaryYear'),
-            applyForm:    document.getElementById('lvApplyForm'),
-            leaveType:    document.getElementById('lvLeaveType'),
-            fromDate:     document.getElementById('lvFromDate'),
-            toDate:       document.getElementById('lvToDate'),
-            nextJoining:  document.getElementById('lvNextJoining'),
-            noDays:       document.getElementById('lvNoDays'),
-            remarks:      document.getElementById('lvRemarks'),
-            requestsBody: document.getElementById('lvRequestsBody'),
-            emptyMsg:     document.getElementById('lvEmpty'),
-            toast:        document.getElementById('lvToast'),
+            summaryBody:       document.getElementById('lvSummaryBody'),
+            summaryYear:       document.getElementById('lvSummaryYear'),
+            applyForm:         document.getElementById('lvApplyForm'),
+            leaveType:         document.getElementById('lvLeaveType'),
+            leaveTypeShr:      document.getElementById('lvLeaveTypeShr'),
+            fullDayFields:     document.getElementById('lvFullDayFields'),
+            shortLeaveFields:  document.getElementById('lvShortLeaveFields'),
+            fromDate:          document.getElementById('lvFromDate'),
+            toDate:            document.getElementById('lvToDate'),
+            nextJoining:       document.getElementById('lvNextJoining'),
+            noDays:            document.getElementById('lvNoDays'),
+            shrDate:           document.getElementById('lvShrDate'),
+            fromTime:          document.getElementById('lvFromTime'),
+            toTime:            document.getElementById('lvToTime'),
+            duration:          document.getElementById('lvDuration'),
+            remarks:           document.getElementById('lvRemarks'),
+            requestsBody:      document.getElementById('lvRequestsBody'),
+            emptyMsg:          document.getElementById('lvEmpty'),
+            toast:             document.getElementById('lvToast'),
         };
-        // Show current year
         if (els.summaryYear) els.summaryYear.textContent = new Date().getFullYear();
     }
 
@@ -62,9 +68,50 @@ const DCLeaves = (function () {
         if (els.applyForm) {
             els.applyForm.addEventListener('submit', handleApply);
         }
-        // Auto-calc days & next joining date
+        // Type toggle — full-day row select
+        if (els.leaveType) els.leaveType.addEventListener('change', onLeaveTypeChange);
+        // Type toggle — SHR row select (syncs back to main select)
+        if (els.leaveTypeShr) els.leaveTypeShr.addEventListener('change', onShrTypeChange);
+        // Auto-calc days & next joining date (full-day leaves)
         if (els.fromDate) els.fromDate.addEventListener('change', calcDays);
         if (els.toDate)   els.toDate.addEventListener('change', calcDays);
+        // Auto-calc duration (short leave)
+        if (els.fromTime) els.fromTime.addEventListener('change', calcShortDuration);
+        if (els.toTime)   els.toTime.addEventListener('change', calcShortDuration);
+    }
+
+    // ---- Leave type toggle ----
+    function onLeaveTypeChange() {
+        const isSHR = els.leaveType && els.leaveType.value === 'SHR';
+        // Sync sibling select
+        if (els.leaveTypeShr) els.leaveTypeShr.value = els.leaveType ? els.leaveType.value : '';
+
+        if (els.fullDayFields) {
+            els.fullDayFields.style.display = isSHR ? 'none' : '';
+            [els.fromDate, els.toDate].forEach(function(el) {
+                if (el) { if (isSHR) el.removeAttribute('required'); else el.setAttribute('required', ''); }
+            });
+        }
+        if (els.shortLeaveFields) {
+            els.shortLeaveFields.style.display = isSHR ? '' : 'none';
+            [els.shrDate, els.fromTime, els.toTime].forEach(function(el) {
+                if (el) { if (isSHR) el.setAttribute('required', ''); else el.removeAttribute('required'); }
+            });
+        }
+        if (!isSHR) {
+            if (els.noDays) els.noDays.value = '';
+            if (els.nextJoining) els.nextJoining.value = '';
+        } else {
+            if (els.duration) els.duration.value = '';
+        }
+    }
+
+    // When user changes type from within the SHR row, sync master select and re-run toggle
+    function onShrTypeChange() {
+        if (els.leaveType && els.leaveTypeShr) {
+            els.leaveType.value = els.leaveTypeShr.value;
+        }
+        onLeaveTypeChange();
     }
 
     // ---- Auto calculations ----
@@ -88,6 +135,33 @@ const DCLeaves = (function () {
         const next = new Date(t);
         next.setDate(next.getDate() + 1);
         els.nextJoining.value = next.toISOString().split('T')[0];
+    }
+
+    function calcShortDuration() {
+        const from = els.fromTime && els.fromTime.value;
+        const to   = els.toTime   && els.toTime.value;
+        if (!from || !to || !els.duration) return;
+
+        const [fh, fm] = from.split(':').map(Number);
+        const [th, tm] = to.split(':').map(Number);
+        const totalMins = (th * 60 + tm) - (fh * 60 + fm);
+
+        if (totalMins <= 0) {
+            els.duration.value = 'Invalid time range';
+            els.duration.style.color = '#dc2626';
+            return;
+        }
+        if (totalMins > 120) {
+            els.duration.value = 'Exceeds 2 hrs limit';
+            els.duration.style.color = '#dc2626';
+            return;
+        }
+        const hrs = Math.floor(totalMins / 60);
+        const mins = totalMins % 60;
+        els.duration.value = hrs > 0
+            ? (mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`)
+            : `${mins}m`;
+        els.duration.style.color = '#333';
     }
 
     // ---- API helpers ----
@@ -116,15 +190,23 @@ const DCLeaves = (function () {
             els.summaryBody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:20px;">No leave allocation found.</td></tr>`;
             return;
         }
-        els.summaryBody.innerHTML = summary.map(row => `
+        els.summaryBody.innerHTML = summary.map(function(row) {
+            const isSHR = row.type === 'SHR';
+            const allocCell = isSHR
+                ? `${row.allocated} <span class="lv-per-month-badge">/ month</span>`
+                : row.allocated;
+            const balanceCell = isSHR
+                ? `<span class="lv-num-balance">${row.balance} left this month</span>`
+                : `<span class="lv-num-balance">${row.balance}</span>`;
+            return `
             <tr>
-                <td><span class="lv-type-badge">${escHtml(row.type)}</span></td>
-                <td class="lv-num">${row.allocated}</td>
+                <td><span class="lv-type-badge${isSHR ? ' lv-type-shr' : ''}">${escHtml(row.type)}</span></td>
+                <td class="lv-num">${allocCell}</td>
                 <td class="lv-num-pending">${row.pending}</td>
                 <td class="lv-num-approved">${row.approved}</td>
-                <td class="lv-num-balance">${row.balance}</td>
-            </tr>
-        `).join('');
+                <td>${balanceCell}</td>
+            </tr>`;
+        }).join('');
     }
 
     // ---- Load requests ----
@@ -169,16 +251,33 @@ const DCLeaves = (function () {
                     <span class="lv-month-count">${g.items.length} request${g.items.length !== 1 ? 's' : ''}</span>
                 </td>
             </tr>`;
-            g.items.forEach(lv => {
+            g.items.forEach(function(lv) {
+                const isSHR = lv.type === 'SHR';
                 const actionCell = lv.status === 'pending'
                     ? `<button class="lv-cancel-btn" title="Cancel" onclick="event.stopPropagation();DCLeaves.cancelLeave(${lv.id})"><i class="fas fa-times"></i></button>`
                     : '—';
+                let fromCell, toCell, daysCell;
+                if (isSHR) {
+                    const timeRange = (lv.from_time && lv.to_time) ? `${lv.from_time} – ${lv.to_time}` : '—';
+                    const hrs = lv.duration_hours || 0;
+                    const durLabel = hrs >= 1
+                        ? (hrs % 1 === 0 ? `${hrs}h` : `${Math.floor(hrs)}h ${Math.round((hrs % 1) * 60)}m`)
+                        : `${Math.round(hrs * 60)}m`;
+                    fromCell = `${formatDate(lv.from_date)} <span class="lv-shr-time">${timeRange}</span>`;
+                    toCell = '—';
+                    daysCell = `<span class="lv-shr-dur">${durLabel}</span>`;
+                } else {
+                    fromCell = formatDate(lv.from_date);
+                    toCell   = formatDate(lv.to_date);
+                    daysCell = lv.no_days;
+                }
+                const typeBadgeClass = isSHR ? 'lv-type-badge lv-type-shr' : 'lv-type-badge';
                 html += `
                 <tr class="lv-month-item${hidden}" data-group="${key}">
-                    <td data-label="Type"><span class="lv-type-badge">${escHtml(lv.type)}</span></td>
-                    <td data-label="From">${formatDate(lv.from_date)}</td>
-                    <td data-label="To">${formatDate(lv.to_date)}</td>
-                    <td data-label="Days">${lv.no_days}</td>
+                    <td data-label="Type"><span class="${typeBadgeClass}">${escHtml(lv.type)}</span></td>
+                    <td data-label="From">${fromCell}</td>
+                    <td data-label="To">${toCell}</td>
+                    <td data-label="Days">${daysCell}</td>
                     <td data-label="Reason">${escHtml(lv.reason || '—')}</td>
                     <td data-label="Status"><span class="lv-status lv-status-${lv.status}">${capitalize(lv.status)}</span></td>
                     <td data-label="Comments">${escHtml(lv.approver_comments || '—')}</td>
@@ -201,16 +300,58 @@ const DCLeaves = (function () {
     async function handleApply(e) {
         e.preventDefault();
 
-        const type     = els.leaveType.value;
-        const fromDate = els.fromDate.value;
-        const toDate   = els.toDate.value;
-        const nextDate = els.nextJoining.value;
-        const noDays   = parseFloat(els.noDays.value) || 1;
-        const reason   = els.remarks.value.trim();
+        const type   = els.leaveType && els.leaveType.value;
+        const reason = els.remarks && els.remarks.value.trim();
 
-        if (!type || !fromDate || !toDate) {
-            showToast('Please fill in all required fields.', 'error');
+        if (!type) {
+            showToast('Please select a leave type.', 'error');
             return;
+        }
+
+        let payload;
+
+        if (type === 'SHR') {
+            const shrDate  = els.shrDate  && els.shrDate.value;
+            const fromTime = els.fromTime && els.fromTime.value;
+            const toTime   = els.toTime   && els.toTime.value;
+
+            if (!shrDate || !fromTime || !toTime) {
+                showToast('Please fill in date and time fields.', 'error');
+                return;
+            }
+            // Validate duration
+            const [fh, fm] = fromTime.split(':').map(Number);
+            const [th, tm] = toTime.split(':').map(Number);
+            const totalMins = (th * 60 + tm) - (fh * 60 + fm);
+            if (totalMins <= 0) {
+                showToast('To Time must be after From Time.', 'error');
+                return;
+            }
+            if (totalMins > 120) {
+                showToast('Short Leave cannot exceed 2 hours.', 'error');
+                return;
+            }
+            payload = {
+                type,
+                from_date: shrDate,
+                to_date:   shrDate,
+                from_time: fromTime,
+                to_time:   toTime,
+                duration_hours: parseFloat((totalMins / 60).toFixed(2)),
+                no_days: 0,
+                reason
+            };
+        } else {
+            const fromDate = els.fromDate && els.fromDate.value;
+            const toDate   = els.toDate   && els.toDate.value;
+            const nextDate = els.nextJoining && els.nextJoining.value;
+            const noDays   = parseFloat(els.noDays && els.noDays.value) || 1;
+
+            if (!fromDate || !toDate) {
+                showToast('Please fill in all required fields.', 'error');
+                return;
+            }
+            payload = { type, from_date: fromDate, to_date: toDate, next_joining_date: nextDate, no_days: noDays, reason };
         }
 
         const applyBtn = els.applyForm.querySelector('.lv-apply-btn');
@@ -220,7 +361,7 @@ const DCLeaves = (function () {
         const data = await apiFetch('/api/leaves', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type, from_date: fromDate, to_date: toDate, next_joining_date: nextDate, no_days: noDays, reason })
+            body: JSON.stringify(payload)
         });
 
         applyBtn.disabled = false;
@@ -229,6 +370,10 @@ const DCLeaves = (function () {
         if (data && data.success) {
             showToast('Leave application submitted!', 'success');
             els.applyForm.reset();
+            // After reset, SHR row select reverts to its default "SHR selected" state — re-sync master
+            if (els.leaveTypeShr) els.leaveTypeShr.value = 'SHR';
+            if (els.leaveType) els.leaveType.value = '';
+            onLeaveTypeChange(); // restore to full-day row (no type selected)
             loadSummary();
             loadRequests();
         } else {

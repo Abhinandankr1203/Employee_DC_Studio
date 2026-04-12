@@ -158,16 +158,23 @@ const DCSalary = (function () {
         if (!window.jspdf) { showToast('PDF library not loaded.', 'error'); return; }
         var { jsPDF } = window.jspdf;
         var doc = new jsPDF({ unit: 'mm', format: 'a4' });
-        var W = 210, pad = 12;
-        var DK  = [30, 30, 30];
-        var GY  = [110,110,110];
-        var LG  = [190,190,190];
-        var WH  = [255,255,255];
-        var TBG = [245,245,245];
-        var OG  = [235,120,70];
-        var RED = [200, 30, 30];
+        var W = 210, H = 297;
+        var pad = 12;
 
-        // ── Primitives ──────────────────────────────────────────────────────
+        // ── Color palette — identical to reports.js PDF_C ─────────────────────
+        var BG   = [248, 248, 248];   // page background (same as report)
+        var DK   = [55,  55,  55 ];   // dark text (same as report)
+        var MID  = [115, 115, 115];   // mid gray — labels, sub-text
+        var LT   = [210, 210, 210];   // light gray — borders, section headers
+        var ACC  = [210, 50,  30 ];   // accent red — same as report accent
+
+        // Derived shades for table structure (all grays, no white)
+        var LBL  = [228, 228, 228];   // label cell bg  (slightly darker than LT)
+        var VAL  = [240, 240, 240];   // value cell bg  (between LBL and BG)
+        var SHD  = [218, 218, 218];   // section/sub-header bg (slightly darker)
+        var BDR  = [195, 195, 195];   // cell border
+
+        // ── Primitives (helvetica only — matches report font) ─────────────────
         function txt(s, x, y, sz, clr, style, opts) {
             doc.setFont('helvetica', style || 'normal');
             doc.setFontSize(sz);
@@ -180,21 +187,16 @@ const DCSalary = (function () {
             doc.setFillColor(clr[0], clr[1], clr[2]);
             doc.rect(x, y, w, h, 'F');
         }
-        function brect(x, y, w, h, fillClr) {
-            if (fillClr) fill(x, y, w, h, fillClr);
-            doc.setDrawColor(LG[0], LG[1], LG[2]);
-            doc.setLineWidth(0.25);
-            doc.rect(x, y, w, h, 'S');
+        function ln(x1, y1, x2, y2, clr, lw) {
+            doc.setDrawColor(clr[0], clr[1], clr[2]);
+            doc.setLineWidth(lw || 0.25);
+            doc.line(x1, y1, x2, y2);
         }
-        function vl(x, y1, y2) {
-            doc.setDrawColor(LG[0], LG[1], LG[2]);
-            doc.setLineWidth(0.25);
-            doc.line(x, y1, x, y2);
-        }
-        function hl(x1, x2, y) {
-            doc.setDrawColor(LG[0], LG[1], LG[2]);
-            doc.setLineWidth(0.25);
-            doc.line(x1, y, x2, y);
+        function cell(cx, cy, cw, ch, bg) {
+            fill(cx, cy, cw, ch, bg || VAL);
+            doc.setDrawColor(BDR[0], BDR[1], BDR[2]);
+            doc.setLineWidth(0.2);
+            doc.rect(cx, cy, cw, ch, 'S');
         }
         function fc(v) { return (Number(v || 0)).toFixed(2); }
         function fd(d) {
@@ -203,154 +205,153 @@ const DCSalary = (function () {
             return s.length === 3 ? s[2] + '-' + s[1] + '-' + s[0] : d;
         }
 
-        var iw = W - pad * 2;   // inner width = 186mm
+        var iw = W - pad * 2;   // 186mm inner width
         var x0 = pad;
         var y  = pad;
 
-        // ════════════════════════════════════════════════════════════════════
-        // HEADER BOX: logo left | Payslip right
-        // ════════════════════════════════════════════════════════════════════
-        var hH = 45;
-        brect(x0, y, iw, hH, WH);                          // outer border
-        vl(x0 + iw / 2, y, y + hH);                        // centre divider
+        // ════════════════════════════════════════════════════════════════════════
+        // PAGE BACKGROUND — full gray, same as report PDF (no white box)
+        // ════════════════════════════════════════════════════════════════════════
+        fill(0, 0, W, H, BG);
 
-        // Left half — DC Studio logo image + address
-        var logoX = x0 + 3, logoY = y + 4, logoW = 44, logoH = 24.75; // 44 / (16/9)
+        // ════════════════════════════════════════════════════════════════════════
+        // HEADER — logo left  |  "Payslip" + period right
+        // ════════════════════════════════════════════════════════════════════════
+        var hH = 38;
 
+        // Logo (left-aligned, sized to match reference slip)
+        var logoW = 32, logoH = 18;
+        var logoX = x0, logoY = y + (hH - logoH) / 2;
         if (logoDataURL) {
             try { doc.addImage(logoDataURL, 'PNG', logoX, logoY, logoW, logoH); } catch(e) { logoDataURL = null; }
         }
         if (!logoDataURL) {
-            // Fallback text logo
-            fill(x0 + 3, y + 5, 14, 14, OG);
-            txt('DC', x0 + 5.5, y + 14.5, 10, WH, 'bold');
-            txt('STUDIO', x0 + 19, y + 13, 13, DK, 'bold');
+            fill(x0, y + 10, 14, 14, ACC);
+            txt('DC', x0 + 2, y + 19, 9, [248,248,248], 'bold');
         }
-        // Line 1: Moved up to -18
-        txt('SRC- 45B, Shipra Riviera,', x0 + 3, y + hH - 18, 7, GY, 'normal');
 
-// Line 2: Stays at -12
-        txt('Gyan Khand-3, Indirapuram,', x0 + 3, y + hH - 12, 7, GY, 'normal');
+        // Company name + address (next to logo)
+        var cx = x0 + logoW + 5;
+        txt('DC STUDIO',                        cx, y + 11, 15, DK,  'bold');
+        txt('SRC- 45B, Shipra Riviera,',        cx, y + 18, 7,  MID, 'normal');
+        txt('Gyan Khand-3,  Indirapuram,',      cx, y + 23, 7,  MID, 'normal');
+        txt('Ghaziabad, Uttar Pradesh 201014',  cx, y + 28, 7,  MID, 'normal');
 
-// Line 3: Stays at -6
-        txt('Ghaziabad Uttar Pradesh 201014', x0 + 3, y + hH - 6, 7, GY, 'normal');
-
-        // Right half — Payslip title + period
-        var rx = x0 + iw - 3;
-        txtR('Payslip', rx, y + 17, 22, DK, 'bold');
-        txtR(p.period || '', rx, y + 27, 10, OG, 'normal');
+        // "Payslip" title + period — right-aligned
+        var rx = x0 + iw;
+        txtR('Payslip',     rx, y + 14, 24, DK,  'bold');
+        txtR(p.period || '', rx, y + 23, 10, MID, 'normal');
 
         y += hH;
 
-        // ════════════════════════════════════════════════════════════════════
-        // EMPLOYEE INFO TABLE
-        // ════════════════════════════════════════════════════════════════════
-        var rH  = 9;
-        var lb  = ls.leave_balance_by_type || {};
+        // Full-width rule (same style as report section rules)
+        ln(x0, y, x0 + iw, y, LT, 0.6);
+        y += 7;
+
+        // ════════════════════════════════════════════════════════════════════════
+        // EMPLOYEE INFO TABLE — 4 columns: label | value | label | value
+        // All cells are shades of gray (no white) — matching report palette
+        // ════════════════════════════════════════════════════════════════════════
+        var rH = 8.5;
+        var lW = iw * 0.19;   // label col width
+        var vW = iw * 0.31;   // value col width  (lW + vW = 50%)
+
+        var lb    = ls.leave_balance_by_type || {};
         var eName = ep.name || localStorage.getItem('dc_name') || '';
-        var L   = iw * 0.20;   // label column width
-        var V   = iw * 0.30;   // value column width  (L+V = 50% = half)
+
+        var lbParts = [];
+        if (lb.CL != null) lbParts.push('CL: ' + lb.CL);
+        if (lb.PL != null) lbParts.push('PL: ' + lb.PL);
+        if (lb.SL != null) lbParts.push('SL: ' + lb.SL);
+        var leaveBalStr = lbParts.join(';  ') || String(ls.leave_balance || 0);
 
         function eRow(lbl1, val1, lbl2, val2) {
-            brect(x0,       y, L, rH, TBG); txt(lbl1, x0+2,     y+6.5, 7.5, GY,  'bold');
-            brect(x0+L,     y, V, rH, WH);  txt(val1, x0+L+2,   y+6.5, 8,   DK,  'normal');
-            brect(x0+L+V,   y, L, rH, TBG); txt(lbl2, x0+L+V+2, y+6.5, 7.5, GY,  'bold');
-            brect(x0+L+V+L, y, V, rH, WH);  txt(val2, x0+L+V+L+2,y+6.5,8,   DK,  'normal');
+            cell(x0,             y, lW, rH, LBL); txt(String(lbl1),        x0 + 2,             y + 5.8, 7.5, MID, 'bold');
+            cell(x0 + lW,        y, vW, rH, VAL); txt(String(val1 || ''), x0 + lW + 2,         y + 5.8, 8,   DK,  'normal');
+            cell(x0 + lW + vW,   y, lW, rH, LBL); txt(String(lbl2),        x0 + lW + vW + 2,   y + 5.8, 7.5, MID, 'bold');
+            cell(x0 + lW*2 + vW, y, vW, rH, VAL); txt(String(val2 || ''), x0 + lW*2 + vW + 2, y + 5.8, 8,   DK,  'normal');
             y += rH;
         }
 
-        eRow('Emp ID',          ep.userId || '',        'DOJ',                  fd(ep.dateOfJoining));
-        eRow('Emp Name',        eName,                  'PAN',                  ep.pan || '');
-        eRow('Designation',     ep.designation || '',   'Department',           ep.department || '');
-        eRow('Days this month', String(ls.days_in_month || 0), 'No. of Working Days', String(ls.working_days || 0));
-        eRow('Present',         String(ls.present || 0),'LOP',                  String(ls.lop || 0));
-        eRow('LWP',             String(ls.lwp || 0),    'Leave Balance',        String(ls.leave_balance || 0));
+        eRow('Emp ID',          ep.userId || '',       'DOJ',                 fd(ep.dateOfJoining));
+        eRow('Emp Name',        eName,                 'PAN',                 ep.pan || '');
+        eRow('Designation',     ep.designation || '',  'Department',          ep.department || '');
+        eRow('Days this month', ls.days_in_month || 0, 'No. of Working Days', ls.working_days || 0);
+        eRow('Present',         ls.present || 0,       'Late',                ls.late || 0);
+        eRow('Absent',          ls.lop || 0,           'LOP',                 ls.lop || 0);
+        eRow('Leave(s) Taken',  ls.leaves_taken || 0,  'Leave Balance',       leaveBalStr);
 
-        // Leavenly Token row (label | spans remaining width)
-        var clVal = lb.CL != null ? lb.CL : 0;
-        var plVal = lb.PL != null ? lb.PL : 0;
-        var slVal = lb.SL != null ? lb.SL : 0;
-        var tokenStr = 'CL: ' + clVal + '     PL: ' + plVal + '     SL: ' + slVal;
-        brect(x0,   y, L,      rH, TBG); txt('Leave Balance', x0+2,   y+6.5, 7.5, GY, 'bold');
-        brect(x0+L, y, iw - L, rH, WH);  txt(tokenStr,        x0+L+2, y+6.5, 8,   DK, 'normal');
-        y += rH;
+        y += 5;
 
-        y += 4; // gap before earnings
+        // ════════════════════════════════════════════════════════════════════════
+        // EARNINGS + DEDUCTIONS — side-by-side, gray palette throughout
+        // ════════════════════════════════════════════════════════════════════════
+        var hW = iw / 2;
+        var aW = 34;
+        var pW = hW - aW;
 
-        // ════════════════════════════════════════════════════════════════════
-        // EARNINGS + DEDUCTIONS (side-by-side, matching reference layout)
-        // ════════════════════════════════════════════════════════════════════
-        var hW   = iw / 2;      // half-width for each section
-        var aW   = 30;          // amount column width
-        var pW   = hW - aW;     // particulars column width
-
-        // Section headers
+        // Section header row
         var sHH = 8;
-        brect(x0,      y, hW, sHH, TBG); txtC('Earnings',   x0 + hW/2,      y + 5.5, 9, DK, 'bold');
-        brect(x0 + hW, y, hW, sHH, TBG); txtC('Deductions', x0 + hW + hW/2, y + 5.5, 9, DK, 'bold');
-        vl(x0 + hW, y, y + sHH);
+        cell(x0,      y, hW, sHH, SHD); txtC('Earnings',   x0 + hW / 2,      y + 5.5, 9, DK, 'bold');
+        cell(x0 + hW, y, hW, sHH, SHD); txtC('Deductions', x0 + hW + hW / 2, y + 5.5, 9, DK, 'bold');
         y += sHH;
 
-        // Sub-headers: Particulars | Amount
+        // Sub-header row
         var subHH = 7;
-        brect(x0,          y, pW,  subHH, TBG); txt('Particulars',  x0 + 2,      y + 5, 7.5, GY, 'bold');
-        brect(x0 + pW,     y, aW,  subHH, TBG); txtR('Amount',      x0 + hW - 2, y + 5, 7.5, GY, 'bold');
-        brect(x0 + hW,     y, pW,  subHH, TBG); txt('Particulars',  x0 + hW + 2, y + 5, 7.5, GY, 'bold');
-        brect(x0 + hW + pW,y, aW,  subHH, TBG); txtR('Amount',      x0 + iw - 2, y + 5, 7.5, GY, 'bold');
-        vl(x0 + hW, y, y + subHH);
+        cell(x0,           y, pW,  subHH, SHD); txt('Particulars',  x0 + 2,      y + 4.8, 7.5, MID, 'bold');
+        cell(x0 + pW,      y, aW,  subHH, SHD); txtR('Amount',      x0 + hW - 2, y + 4.8, 7.5, MID, 'bold');
+        cell(x0 + hW,      y, pW,  subHH, SHD); txt('Particulars',  x0 + hW + 2, y + 4.8, 7.5, MID, 'bold');
+        cell(x0 + hW + pW, y, aW,  subHH, SHD); txtR('Amount',      x0 + iw - 2, y + 4.8, 7.5, MID, 'bold');
         y += subHH;
 
-        // Earn / Deduct rows
+        // Earn / Deduct data rows (3 earnings, 1 deduction — Loss of Pay only)
         var earnRows = [
             ['Consolidated Salary', p.gross_salary],
-            ['Incentive',           0]
+            ['Incentive',           p.incentive    || 0],
+            ['Reimbursement',       p.reimbursement || 0]
         ];
-        var dedRows = [];
-        if (p.pf)               dedRows.push(['Provident Fund (PF)',  p.pf]);
-        if (p.tds)              dedRows.push(['TDS',                   p.tds]);
-        if (p.professional_tax) dedRows.push(['Professional Tax',      p.professional_tax]);
+        var dedRows = [
+            ['Loss of Pay', p.total_deductions || 0]
+        ];
 
-        var dRH = 8;
+        var dRH  = 8;
         var maxR = Math.max(earnRows.length, dedRows.length);
         for (var i = 0; i < maxR; i++) {
             var er = earnRows[i] || [];
             var dr = dedRows[i]  || [];
-            brect(x0,           y, pW, dRH, WH);
+            cell(x0,           y, pW, dRH, VAL);
             if (er[0]) txt(er[0], x0 + 2,       y + 5.5, 8, DK, 'normal');
-            brect(x0 + pW,      y, aW, dRH, WH);
-            if (er[1] != null)  txtR(fc(er[1]), x0 + hW - 2, y + 5.5, 8, DK, 'normal');
-            brect(x0 + hW,      y, pW, dRH, WH);
-            if (dr[0]) txt(dr[0], x0 + hW + 2,  y + 5.5, 8, DK, 'normal');
-            brect(x0 + hW + pW, y, aW, dRH, WH);
-            if (dr[1] != null)  txtR(fc(dr[1]), x0 + iw - 2, y + 5.5, 8, DK, 'normal');
-            vl(x0 + hW, y, y + dRH);
+            cell(x0 + pW,      y, aW, dRH, VAL);
+            if (er[1] != null) txtR(fc(er[1]), x0 + hW - 2, y + 5.5, 8, DK, 'normal');
+            cell(x0 + hW,      y, pW, dRH, VAL);
+            if (dr[0]) txt(dr[0], x0 + hW + 2, y + 5.5, 8, DK, 'normal');
+            cell(x0 + hW + pW, y, aW, dRH, VAL);
+            if (dr[1] != null) txtR(fc(dr[1]), x0 + iw - 2, y + 5.5, 8, ACC, 'normal');
             y += dRH;
         }
 
         // Totals row
         var totH = 9;
-        brect(x0,           y, pW,  totH, TBG); txt('Total Earnings',     x0 + 2,       y + 6.5, 8.5, DK,  'bold');
-        brect(x0 + pW,      y, aW,  totH, TBG); txtR(fc(p.gross_salary),  x0 + hW - 2,  y + 6.5, 8.5, OG,  'bold');
-        brect(x0 + hW,      y, pW,  totH, TBG); txt('Total Deductions',   x0 + hW + 2,  y + 6.5, 8.5, DK,  'bold');
-        brect(x0 + hW + pW, y, aW,  totH, TBG); txtR(fc(p.total_deductions), x0+iw-2,   y + 6.5, 8.5, RED, 'bold');
-        vl(x0 + hW, y, y + totH);
+        cell(x0,           y, pW,  totH, LBL); txt('Total Earnings',        x0 + 2,      y + 6.5, 8.5, DK,  'bold');
+        cell(x0 + pW,      y, aW,  totH, LBL); txtR(fc(p.gross_salary),     x0 + hW - 2, y + 6.5, 8.5, DK,  'bold');
+        cell(x0 + hW,      y, pW,  totH, LBL); txt('Total Deductions',      x0 + hW + 2, y + 6.5, 8.5, DK,  'bold');
+        cell(x0 + hW + pW, y, aW,  totH, LBL); txtR(fc(p.total_deductions), x0 + iw - 2, y + 6.5, 8.5, ACC, 'bold');
         y += totH;
 
-        // Net Pay row
+        // Net Pay row — full-width, prominent
         var npH = 11;
-        fill(x0, y, iw, npH, DK);
-        brect(x0, y, iw, npH);
-        txt('Net Pay', x0 + 4, y + 7.5, 10, WH, 'bold');
-        txtR(fc(p.net_pay), x0 + iw - 4, y + 7.5, 11, OG, 'bold');
+        cell(x0, y, iw, npH, SHD);
+        txt('Net Pay', x0 + 4, y + 7.5, 10.5, DK, 'bold');
+        txtR(fc(p.net_pay), x0 + iw - 4, y + 7.5, 10.5, ACC, 'bold');
         y += npH;
 
-        // ════════════════════════════════════════════════════════════════════
-        // FOOTER
-        // ════════════════════════════════════════════════════════════════════
+        // ════════════════════════════════════════════════════════════════════════
+        // FOOTER — italic, muted, centered (same style as report)
+        // ════════════════════════════════════════════════════════════════════════
         y += 10;
-        doc.setFont('helvetica', 'normal');
+        doc.setFont('helvetica', 'italic');
         doc.setFontSize(7.5);
-        doc.setTextColor(130, 130, 130);
+        doc.setTextColor(MID[0], MID[1], MID[2]);
         doc.text(
             'This is a computer generated document from DC Studio \u00A9 ' + new Date().getFullYear(),
             W / 2, y, { align: 'center' }

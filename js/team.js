@@ -3,18 +3,21 @@ const DCTeam = (function () {
     'use strict';
 
     const DEPT_CLASS = {
-        'Design':              'tm-dept-Design',
-        'Project Management':  'tm-dept-Project-Management',
-        'Administration':      'tm-dept-Administration',
-        'Accounts':            'tm-dept-Accounts'
+        'Design':             'tm-dept-Design',
+        'Project Management': 'tm-dept-Project-Management',
+        'Administration':     'tm-dept-Administration',
+        'Accounts':           'tm-dept-Accounts'
     };
 
-    let allMembers  = [];
-    let allProjects = [];
+    let allMembers   = [];
+    let allProjects  = [];
     let currentFilter = 'all';
-    let editingId  = null;
-    let skillsList = [];
-    let toastTimer = null;
+    let currentOffice = 'all';
+    let currentSearch = '';
+    let editingId    = null;
+    let skillsList   = [];
+    let toastTimer   = null;
+    let lastStatCounts = {};  // tracks previous counts for smooth animation
 
     // ── Auth fetch ──────────────────────────────────────────
     function apiFetch(path, opts) {
@@ -30,6 +33,21 @@ const DCTeam = (function () {
 
     // ── Init / Destroy ──────────────────────────────────────
     function init() {
+        // Always reset filter state so the page is fresh on every visit
+        currentFilter   = 'all';
+        currentOffice   = 'all';
+        currentSearch   = '';
+        lastStatCounts  = {};
+
+        // Sync UI controls to the reset state
+        document.querySelectorAll('.tm-filter-btn').forEach(function (b) {
+            b.classList.toggle('active', b.dataset.dept === 'all');
+        });
+        var searchInput = document.getElementById('tmSearch');
+        if (searchInput) searchInput.value = '';
+        var officeFilter = document.getElementById('tmOfficeFilter');
+        if (officeFilter) officeFilter.value = 'all';
+
         bindEvents();
         loadAll();
     }
@@ -70,6 +88,24 @@ const DCTeam = (function () {
             });
         });
 
+        // Search input
+        var searchInput = document.getElementById('tmSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                currentSearch = this.value.trim().toLowerCase();
+                renderCards();
+            });
+        }
+
+        // Office filter
+        var officeFilter = document.getElementById('tmOfficeFilter');
+        if (officeFilter) {
+            officeFilter.addEventListener('change', function () {
+                currentOffice = this.value;
+                renderCards();
+            });
+        }
+
         // Skills tag input
         var skillInput = document.getElementById('tmSkillInput');
         if (skillInput) {
@@ -89,36 +125,107 @@ const DCTeam = (function () {
             .then(function (results) {
                 allMembers  = (results[0] && results[0].members)  ? results[0].members  : [];
                 allProjects = (results[1] && results[1].projects) ? results[1].projects : [];
-                renderStats();
+                populateOfficeDropdown();
                 renderCards();
             });
     }
 
+    var OFFICE_LIST = ['Bengaluru', 'Bhopal', 'Delhi', 'Gurugram', 'Head Office', 'Hyderabad', 'Kolkata', 'Mohali', 'Mumbai'];
+
+    function populateOfficeDropdown() {
+        // Dropdown is now hardcoded in HTML — nothing to do
+    }
+
+    // ── Count animation ──────────────────────────────────────
+    function animateCount(el, from, to, duration) {
+        // Guarantee a valid integer destination
+        var target = Number.isFinite(to) ? to : 0;
+        var origin = Number.isFinite(from) ? from : 0;
+        if (origin === target) { el.textContent = target; return; }
+        var startTs = null;
+        var range   = target - origin;
+        function step(ts) {
+            if (startTs === null) startTs = ts;
+            var elapsed  = ts - startTs;
+            var progress = Math.min(elapsed / duration, 1);
+            var ease     = 1 - Math.pow(1 - progress, 3); // cubic ease-out
+            el.textContent = Math.round(origin + range * ease);
+            if (progress < 1) {
+                requestAnimationFrame(step);
+            } else {
+                el.textContent = target; // guarantee exact final value
+            }
+        }
+        requestAnimationFrame(step);
+    }
+
+    // Fixed dept list — must match the filter tab buttons exactly
+    var STAT_DEPTS = [
+        { key: 'Design',              label: 'Design',              color: '#3b82f6' },
+        { key: 'Project Management',  label: 'Project Management',  color: '#10b981' },
+        { key: 'Administration',      label: 'Administration',      color: '#6b7280' },
+        { key: 'Accounts',            label: 'Accounts',            color: '#f43f5e' }
+    ];
+
     // ── Stats bar ────────────────────────────────────────────
-    function renderStats() {
+    function renderStats(filtered) {
         var container = document.getElementById('tmStats');
         if (!container) return;
-        var depts = {};
-        allMembers.forEach(function (m) {
-            depts[m.department] = (depts[m.department] || 0) + 1;
+
+        // 1. Visible members — filtered set or all members
+        var visible = Array.isArray(filtered) ? filtered : allMembers;
+
+        // 2. Count per dept for the visible set (only the 4 fixed depts)
+        var deptCounts = {};
+        STAT_DEPTS.forEach(function (d) { deptCounts[d.key] = 0; });
+        visible.forEach(function (m) {
+            var dept = (m.department || '').trim();
+            if (deptCounts.hasOwnProperty(dept)) deptCounts[dept]++;
         });
-        var html = '<div class="tm-stat"><div class="tm-stat-num">' + allMembers.length + '</div><div class="tm-stat-lbl">Total Members</div></div>';
-        Object.keys(depts).forEach(function (d) {
-            html += '<div class="tm-stat" data-dept="' + escHtml(d) + '">'
-                + '<div class="tm-stat-num">' + depts[d] + '</div>'
-                + '<div class="tm-stat-lbl">' + escHtml(d) + '</div>'
+
+        // 3. Build card descriptors: Total first, then the 4 fixed depts
+        var cards = [
+            { key: '__total__', label: 'Total Members',
+              count: visible.length, color: '#eb7846', zero: false }
+        ];
+        STAT_DEPTS.forEach(function (d) {
+            var count = deptCounts[d.key];
+            cards.push({ key: d.key, label: d.label,
+                         count: count, color: d.color, zero: count === 0 });
+        });
+
+        // 4. Render HTML (numbers start at 0 — animation fills them in)
+        container.innerHTML = cards.map(function (c, i) {
+            return '<div class="tm-stat' + (c.zero ? ' tm-stat-zero' : '') + '"'
+                + ' data-stat-idx="' + i + '"'
+                + ' style="--stat-color:' + c.color + '">'
+                + '<div class="tm-stat-num">0</div>'
+                + '<div class="tm-stat-lbl">' + escHtml(c.label) + '</div>'
                 + '</div>';
+        }).join('');
+
+        // 6. Animate each number from its last known value to the new count
+        cards.forEach(function (c, i) {
+            var numEl = container.querySelector('[data-stat-idx="' + i + '"] .tm-stat-num');
+            if (!numEl) return;
+            var prev = (lastStatCounts[c.key] !== undefined) ? lastStatCounts[c.key] : 0;
+            animateCount(numEl, prev, c.count, 450);
+            lastStatCounts[c.key] = c.count; // persist for next render
         });
-        container.innerHTML = html;
     }
 
     // ── Render cards ────────────────────────────────────────
     function renderCards() {
         var grid = document.getElementById('tmGrid');
         if (!grid) return;
-        var filtered = currentFilter === 'all'
-            ? allMembers
-            : allMembers.filter(function (m) { return m.department === currentFilter; });
+        var filtered = allMembers.filter(function (m) {
+            if (currentFilter !== 'all' && m.department !== currentFilter) return false;
+            if (currentOffice !== 'all' && m.office !== currentOffice) return false;
+            if (currentSearch && m.name.toLowerCase().indexOf(currentSearch) === -1) return false;
+            return true;
+        });
+
+        renderStats(filtered);
 
         if (!filtered.length) {
             grid.innerHTML = '<div class="tm-empty"><i class="fas fa-users"></i><p>No team members found.</p></div>';
@@ -156,7 +263,10 @@ const DCTeam = (function () {
             +   '<div class="tm-card-info">'
             +     '<div class="tm-card-name">' + escHtml(m.name) + '</div>'
             +     '<div class="tm-card-desig">' + escHtml(m.designation) + '</div>'
-            +     '<span class="tm-dept-badge">' + escHtml(m.department) + '</span>'
+            +     '<div class="tm-card-badges">'
+            +       '<span class="tm-dept-badge">' + escHtml(m.department) + '</span>'
+            +       (m.office ? '<span class="tm-office-badge"><i class="fas fa-map-marker-alt"></i> ' + escHtml(m.office) + '</span>' : '')
+            +     '</div>'
             +   '</div>'
             + '</div>'
             + '<div class="tm-contacts">'
@@ -197,6 +307,7 @@ const DCTeam = (function () {
         document.getElementById('tmEmail').value       = m.email;
         document.getElementById('tmPhone').value       = m.phone || '';
         document.getElementById('tmJoined').value      = m.joined_date || '';
+        document.getElementById('tmOffice').value      = m.office || '';
         renderSkillChips();
         document.getElementById('tmModalOverlay').classList.add('open');
     }
@@ -237,6 +348,7 @@ const DCTeam = (function () {
             department:  form.elements['tmDept'].value,
             email:       form.elements['tmEmail'].value.trim(),
             phone:       form.elements['tmPhone'].value.trim(),
+            office:      form.elements['tmOffice'].value,
             joined_date: form.elements['tmJoined'].value,
             skills:      skillsList.slice()
         };
@@ -260,7 +372,6 @@ const DCTeam = (function () {
                     allMembers.push(data.member);
                 }
                 closeModal();
-                renderStats();
                 renderCards();
                 showToast(editingId ? 'Member updated!' : 'Member added!', 'success');
             } else {
@@ -276,7 +387,6 @@ const DCTeam = (function () {
         apiFetch('/api/team/' + id, { method: 'DELETE' }).then(function (data) {
             if (data && data.success) {
                 allMembers = allMembers.filter(function (x) { return x.id !== id; });
-                renderStats();
                 renderCards();
                 showToast('Member removed.', 'success');
             } else {

@@ -432,6 +432,7 @@
     animation: ttModalIn 0.3s ease;
 }
 
+
 .tt-modal-sm {
     max-width: 400px;
 }
@@ -453,6 +454,7 @@
     align-items: center;
     padding: 20px 24px;
     border-bottom: 1px solid #eee;
+    border-radius: 16px 16px 0 0;
 }
 
 .tt-modal-header h3 {
@@ -493,6 +495,7 @@
     gap: 10px;
     padding: 16px 24px;
     border-top: 1px solid #eee;
+    border-radius: 0 0 16px 16px;
 }
 
 /* Form Elements */

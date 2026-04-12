@@ -209,8 +209,14 @@ const DCCalendar = (function () {
         var html = '';
 
         // Day-of-week headers
+        var todayDow = new Date(currentYear, currentMonth, new Date().getDate()).getDay();
+        var todayForHeader = (currentYear === new Date().getFullYear() && currentMonth === new Date().getMonth())
+            ? new Date().getDay() : -1;
         for (var d = 0; d < 7; d++) {
-            html += '<div class="cal-day-header">' + DAY_NAMES[d] + '</div>';
+            var headerClass = 'cal-day-header';
+            if (d === 0 || d === 6) headerClass += ' cal-header-weekend';
+            if (d === todayForHeader) headerClass += ' cal-header-today';
+            html += '<div class="' + headerClass + '">' + DAY_NAMES[d] + '</div>';
         }
 
         var daysInMonth = getDaysInMonth(currentYear, currentMonth);
@@ -245,6 +251,7 @@ const DCCalendar = (function () {
 
             html += '<div class="' + classes + '" data-date="' + dateStr + '" onclick="DCCalendar.onDayClick(\'' + dateStr + '\')">';
             html += '<div class="cal-day-number">' + day + '</div>';
+            html += '<div class="cal-cell-add" title="Add event"><i class="fas fa-plus"></i></div>';
             html += renderDayEvents(dateStr);
             html += '</div>';
         }
@@ -272,9 +279,12 @@ const DCCalendar = (function () {
         for (var i = 0; i < Math.min(dayEvents.length, maxShow); i++) {
             var evt = dayEvents[i];
             var pillClass = getPillClass(evt);
-            var timeStr = evt.startTime ? formatTime(evt.startTime) + ' ' : '';
-            html += '<div class="cal-event-pill ' + pillClass + '" onclick="event.stopPropagation(); DCCalendar.openEventDetail(\'' + evt.id + '\')" title="' + escapeAttr(evt.title) + '">';
-            html += timeStr + escapeHtml(evt.title);
+            var timeStr = evt.startTime ? formatTime(evt.startTime) : '';
+            html += '<div class="cal-event-pill ' + pillClass + '" onclick="event.stopPropagation(); DCCalendar.openEventDetail(\'' + evt.id + '\')" title="' + escapeAttr((timeStr ? timeStr + ' ' : '') + evt.title) + '">';
+            html += '<span class="pill-text">';
+            if (timeStr) html += '<span class="pill-time">' + escapeHtml(timeStr) + '</span>';
+            html += escapeHtml(evt.title);
+            html += '</span>';
             html += '</div>';
         }
 
@@ -314,38 +324,52 @@ const DCCalendar = (function () {
 
         els.detailTitle.textContent = evt.title;
 
-        var badgeClass = 'badge-' + evt.type;
         var typeLabel = evt.type === 'google' ? 'Google Calendar' : evt.type === 'meeting' ? 'Meeting' : 'Task';
+        var stripClass = evt.type === 'google' ? 'cal-strip-google'
+            : evt.type === 'meeting' ? 'cal-strip-meeting'
+            : (evt.status === 'done' ? 'cal-strip-done' : (function() {
+                var today2 = new Date();
+                var ts = today2.getFullYear() + '-' + pad(today2.getMonth()+1) + '-' + pad(today2.getDate());
+                return (evt.date < ts && evt.status !== 'done') ? 'cal-strip-overdue' : 'cal-strip-task';
+            })());
+        var badgeClass = 'badge-' + evt.type;
 
-        var html = '';
-        html += '<div class="cal-detail-row"><span class="cal-type-badge ' + badgeClass + '">' + typeLabel + '</span></div>';
+        // Inject colored strip at top of modal box (before header)
+        var modalBox = els.detailModal.querySelector('.cal-modal');
+        var existingStrip = modalBox.querySelector('.cal-detail-header-strip');
+        if (existingStrip) existingStrip.remove();
+        var strip = document.createElement('div');
+        strip.className = 'cal-detail-header-strip ' + stripClass;
+        modalBox.insertBefore(strip, modalBox.firstChild);
+
+        var html = '<div class="cal-detail-row"><span class="cal-type-badge ' + badgeClass + '">' + typeLabel + '</span></div>';
 
         if (evt.date) {
             var dateObj = new Date(evt.date + 'T00:00:00');
             var dateLabel = dateObj.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            html += '<div class="cal-detail-row"><i class="fas fa-calendar"></i><span>' + dateLabel + '</span></div>';
+            html += '<div class="cal-detail-row"><i class="fas fa-calendar cal-detail-icon"></i><div><div class="cal-detail-label">Date</div><div class="cal-detail-value">' + dateLabel + '</div></div></div>';
         }
 
         if (evt.startTime) {
             var timeText = formatTime(evt.startTime);
-            if (evt.endTime) timeText += ' - ' + formatTime(evt.endTime);
-            html += '<div class="cal-detail-row"><i class="fas fa-clock"></i><span>' + timeText + '</span></div>';
+            if (evt.endTime) timeText += ' – ' + formatTime(evt.endTime);
+            html += '<div class="cal-detail-row"><i class="fas fa-clock cal-detail-icon"></i><div><div class="cal-detail-label">Time</div><div class="cal-detail-value">' + timeText + '</div></div></div>';
         }
 
         if (evt.priority) {
-            html += '<div class="cal-detail-row"><i class="fas fa-flag"></i><span>Priority: <strong>' + evt.priority + '</strong></span></div>';
+            html += '<div class="cal-detail-row"><i class="fas fa-flag cal-detail-icon"></i><div><div class="cal-detail-label">Priority</div><div class="cal-detail-value">' + escapeHtml(evt.priority) + '</div></div></div>';
         }
 
         if (evt.status) {
-            html += '<div class="cal-detail-row"><i class="fas fa-info-circle"></i><span>Status: <strong>' + evt.status + '</strong></span></div>';
+            html += '<div class="cal-detail-row"><i class="fas fa-info-circle cal-detail-icon"></i><div><div class="cal-detail-label">Status</div><div class="cal-detail-value">' + escapeHtml(evt.status) + '</div></div></div>';
         }
 
         if (evt.assignee) {
-            html += '<div class="cal-detail-row"><i class="fas fa-user"></i><span>' + escapeHtml(evt.assignee) + '</span></div>';
+            html += '<div class="cal-detail-row"><i class="fas fa-user cal-detail-icon"></i><div><div class="cal-detail-label">Assignee</div><div class="cal-detail-value">' + escapeHtml(evt.assignee) + '</div></div></div>';
         }
 
         if (evt.description) {
-            html += '<div class="cal-detail-row"><i class="fas fa-align-left"></i><span>' + escapeHtml(evt.description) + '</span></div>';
+            html += '<div class="cal-detail-row"><i class="fas fa-align-left cal-detail-icon"></i><div><div class="cal-detail-label">Description</div><div class="cal-detail-value">' + escapeHtml(evt.description) + '</div></div></div>';
         }
 
         if (evt.meetLink) {
