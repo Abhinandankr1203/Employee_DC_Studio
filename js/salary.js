@@ -4,6 +4,9 @@ const DCSalary = (function () {
 
     let els = {};
     let toastTimer = null;
+    let privacyMode = false;
+    let currentPayslips = [];
+    let currentClaims = [];
 
     function isAdminUser() { return localStorage.getItem('dc_role') === 'admin'; }
 
@@ -51,7 +54,11 @@ const DCSalary = (function () {
             users.map(u => `<option value="${escHtml(u.id)}" data-name="${escHtml(u.name)}">${escHtml(u.name)}</option>`).join('');
     }
 
-    function destroy() {}
+    function destroy() {
+        privacyMode = false;
+        currentPayslips = [];
+        currentClaims = [];
+    }
 
     function cacheElements() {
         els = {
@@ -68,6 +75,7 @@ const DCSalary = (function () {
             toast:             document.getElementById('salToast'),
             forEmployeeWrap:   document.getElementById('salForEmployeeWrap'),
             forEmployee:       document.getElementById('salForEmployee'),
+            privacyToggle:     document.getElementById('salPrivacyToggle'),
         };
     }
 
@@ -80,6 +88,21 @@ const DCSalary = (function () {
         }
         const addBillBtn = document.getElementById('salAddBillBtn');
         if (addBillBtn) addBillBtn.addEventListener('click', addBillRow);
+        if (els.privacyToggle) {
+            els.privacyToggle.addEventListener('click', togglePrivacy);
+        }
+    }
+
+    function togglePrivacy() {
+        privacyMode = !privacyMode;
+        const icon = els.privacyToggle ? els.privacyToggle.querySelector('i') : null;
+        if (icon) {
+            icon.classList.toggle('fa-eye', !privacyMode);
+            icon.classList.toggle('fa-eye-slash', privacyMode);
+        }
+        if (els.privacyToggle) els.privacyToggle.classList.toggle('sal-privacy-on', privacyMode);
+        renderPayslips(currentPayslips);
+        renderReimbursements(currentClaims);
     }
 
     function switchTab(tabName) {
@@ -103,7 +126,8 @@ const DCSalary = (function () {
 
     async function loadPayslips() {
         const data = await apiFetch('/api/salary/payslips');
-        renderPayslips(data && data.payslips ? data.payslips : []);
+        currentPayslips = data && data.payslips ? data.payslips : [];
+        renderPayslips(currentPayslips);
     }
 
     function renderPayslips(payslips) {
@@ -373,7 +397,8 @@ const DCSalary = (function () {
 
     async function loadReimbursements() {
         const data = await apiFetch('/api/reimbursements');
-        renderReimbursements(data && data.claims ? data.claims : []);
+        currentClaims = data && data.claims ? data.claims : [];
+        renderReimbursements(currentClaims);
     }
 
     function renderReimbursements(claims) {
@@ -678,6 +703,7 @@ const DCSalary = (function () {
     }
 
     function formatCurrency(amount) {
+        if (privacyMode) return '₹ •••••';
         if (amount === null || amount === undefined || amount === '') return '—';
         return '\u20B9' + Number(amount).toLocaleString('en-IN');
     }

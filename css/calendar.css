@@ -743,18 +743,19 @@
     .cal-day-cell { min-height: 72px; padding: 4px 4px 3px; }
     .cal-day-number { font-size: 0.72rem; width: 22px; height: 22px; }
 
-    /* Mobile: dots instead of text bars */
+    /* Mobile: compact text labels */
     .cal-event-pill {
-        width: 8px; height: 8px;
-        border-radius: 50%;
-        padding: 0;
-        flex-shrink: 0;
+        width: 100%;
+        height: auto;
+        border-radius: 3px;
+        padding: 1px 4px;
+        font-size: 0.6rem;
+        flex-shrink: 1;
     }
-    .cal-event-pill .pill-icon,
-    .cal-event-pill .pill-text,
+    .cal-event-pill .pill-text { display: block; }
     .cal-event-pill .pill-time { display: none; }
 
-    .cal-events { flex-direction: row; flex-wrap: wrap; gap: 3px; align-items: flex-start; }
+    .cal-events { flex-direction: column; gap: 1px; }
     .cal-event-more { font-size: 0.58rem; padding: 0; }
     .cal-cell-add { display: none; }
 
@@ -776,5 +777,5 @@
     .cal-today-btn { padding: 5px 10px; font-size: 0.73rem; }
     .cal-day-cell { min-height: 58px; padding: 3px 2px; }
     .cal-day-number { font-size: 0.65rem; width: 19px; height: 19px; }
-    .cal-event-pill { width: 6px; height: 6px; }
+    .cal-event-pill { font-size: 0.55rem; padding: 1px 3px; }
 }

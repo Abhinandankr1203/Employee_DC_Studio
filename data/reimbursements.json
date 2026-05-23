@@ -51,9 +51,10 @@
       "project": "DC-002 Greenfield Corporate Office",
       "description": "Client meeting – auto and fuel expenses",
       "file_name": null,
-      "status": "pending",
-      "approver_comments": "",
-      "created_at": "2026-04-01T14:00:00.000Z"
+      "status": "approved",
+      "approver_comments": "h",
+      "created_at": "2026-04-01T14:00:00.000Z",
+      "actioned_at": "2026-05-23T07:53:06.498Z"
     },
     {
       "id": 5,
@@ -92,9 +93,10 @@
       "project": "",
       "description": "Site visit to Bengaluru – travel and cab",
       "file_name": null,
-      "status": "pending",
-      "approver_comments": "",
-      "created_at": "2026-04-02T12:00:00.000Z"
+      "status": "approved",
+      "approver_comments": "b",
+      "created_at": "2026-04-02T12:00:00.000Z",
+      "actioned_at": "2026-05-22T22:40:58.201Z"
     },
     {
       "id": 8,
@@ -192,7 +194,23 @@
       "approver_comments": "Approved.",
       "created_at": "2026-03-22T10:00:00.000Z",
       "actioned_at": "2026-03-23T09:00:00.000Z"
+    },
+    {
+      "id": 15,
+      "user_id": 1,
+      "employee_name": "Admin User",
+      "expense_date": "2026-05-23",
+      "amount": 1400,
+      "category": "Food",
+      "project": "",
+      "description": "fgs",
+      "file_name": "2026-05-18.png",
+      "file_path": "/uploads/1779487631673_51f9558a.png",
+      "status": "approved",
+      "approver_comments": "done",
+      "created_at": "2026-05-22T22:07:11.676Z",
+      "actioned_at": "2026-05-22T22:07:39.809Z"
     }
   ],
-  "nextId": 15
+  "nextId": 16
 }

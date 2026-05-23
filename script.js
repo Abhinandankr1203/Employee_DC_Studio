@@ -46,6 +46,22 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(() => {});
     })();
 
+    // ── Password show/hide toggle ──────────────────────────────────────────
+    const pwdToggle = document.getElementById('pwdToggle');
+    if (pwdToggle) {
+        pwdToggle.addEventListener('click', function () {
+            const inp = document.getElementById('password');
+            const icon = this.querySelector('i');
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                inp.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        });
+    }
+
     // ── Handle Login Form Submission ───────────────────────────────────────
     loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();

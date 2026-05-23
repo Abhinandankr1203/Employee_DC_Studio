@@ -360,26 +360,35 @@ const DCApprovals = (function () {
             body = JSON.stringify({ status: reviewTarget.action === 'approve' ? 'approved' : 'rejected', comment: comment });
         }
 
+        var savedAction = reviewTarget.action;
         apiFetch(url, { method: 'PATCH', body: body }).then(function (data) {
             mconf.disabled = false;
             if (data && data.success) {
                 closeReviewModal();
-                // Show employee credentials if newly approved
                 if (data.userId) {
                     showCredentials(data);
                 } else {
-                    showToast(reviewTarget.action === 'approve' ? 'Approved successfully.' : 'Rejected.', 'success');
+                    showToast(savedAction === 'approve' ? 'Approved successfully.' : 'Rejected.', 'success');
                 }
                 fetchBadge();
                 loadCurrentTab();
             } else {
-                mconf.textContent = reviewTarget.action === 'approve' ? 'Approve' : 'Reject';
-                showToast((data && data.error) || 'Action failed.', 'error');
+                var errMsg = (data && data.error) || 'Action failed.';
+                var isStale = errMsg.toLowerCase().includes('only pending');
+                if (isStale) {
+                    closeReviewModal();
+                    showToast('This request has already been reviewed. Refreshing…', 'error');
+                    loadCurrentTab();
+                } else {
+                    mconf.disabled = false;
+                    mconf.textContent = savedAction === 'approve' ? 'Approve' : 'Reject';
+                    showToast(errMsg, 'error');
+                }
             }
         }).catch(function () {
             mconf.disabled = false;
-            mconf.textContent = reviewTarget.action === 'approve' ? 'Approve' : 'Reject';
-            showToast('Network error.', 'error');
+            mconf.textContent = savedAction === 'approve' ? 'Approve' : 'Reject';
+            showToast('Network error. Please try again.', 'error');
         });
     }
 

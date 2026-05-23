@@ -27,6 +27,7 @@ var DCReports = (function () {
     var progressCounter = 0;
     var facingMode = 'environment';
     var pdfLogoDataUrl = null;      // pre-loaded DC Studio logo for PDF
+    var pdfLogoW = 0, pdfLogoH = 0; // actual pixel dims after resize (for correct aspect ratio)
 
     // ── OneDrive Config ────────────────────────────────────
     // Paste your Power Automate / OneDrive HTTP trigger URL here when ready:
@@ -1434,6 +1435,8 @@ var DCReports = (function () {
             cnv.height = h;
             cnv.getContext('2d').drawImage(img, 0, 0, w, h);
             pdfLogoDataUrl = cnv.toDataURL('image/png');
+            pdfLogoW = w;
+            pdfLogoH = h;
         };
         img.onerror = function () { pdfLogoDataUrl = null; };
         img.src = '/DC%20Studio%20Logo%20new%20end.png';
@@ -1482,7 +1485,8 @@ var DCReports = (function () {
 
     function pdfLogo(doc) {
         // Logo dimensions and position (top-right corner)
-        var lw = 30, lh = 21;
+        var lw = 30;
+        var lh = (pdfLogoW > 0 && pdfLogoH > 0) ? Math.round(lw * pdfLogoH / pdfLogoW) : 17;
         var lx = 198 - lw, ly = 5;
 
         if (pdfLogoDataUrl) {
