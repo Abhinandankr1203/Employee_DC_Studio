@@ -895,3 +895,114 @@
         padding: 12px;
     }
 }
+
+/* ==================== MULTI-SELECT ASSIGNEE ==================== */
+
+.tt-assignee-select {
+    position: relative;
+}
+
+.tt-assignee-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #333;
+    min-height: 42px;
+    gap: 8px;
+    transition: border-color 0.2s;
+    font-family: 'Poppins', sans-serif;
+}
+
+.tt-assignee-trigger:hover {
+    border-color: #eb7846;
+}
+
+.tt-assignee-trigger.open {
+    border-color: #eb7846;
+    border-radius: 8px 8px 0 0;
+}
+
+.tt-assignee-chev {
+    font-size: 0.72rem;
+    color: #999;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+}
+
+.tt-assignee-trigger.open .tt-assignee-chev {
+    transform: rotate(180deg);
+}
+
+.tt-assignee-dropdown {
+    display: none;
+    position: fixed;
+    background: white;
+    border: 1px solid #eb7846;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 9999;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+.tt-assignee-dropdown.open {
+    display: block;
+}
+
+.tt-assignee-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    cursor: pointer;
+    font-size: 0.88rem;
+    color: #333;
+    transition: background 0.15s;
+    font-family: 'Poppins', sans-serif;
+}
+
+.tt-assignee-option:hover {
+    background: #fef3ed;
+}
+
+.tt-assignee-cb {
+    accent-color: #eb7846;
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* Tag shown in trigger when items selected */
+.tt-sel-tag {
+    background: #fef3ed;
+    color: #eb7846;
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 0.82rem;
+    font-weight: 500;
+}
+
+/* Multiple-assignee chips in table cell */
+.tt-multi-assignee {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.tt-asgn-chip {
+    background: #f0f4ff;
+    color: #4a6cf7;
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    white-space: nowrap;
+}

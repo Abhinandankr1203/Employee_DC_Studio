@@ -18,6 +18,7 @@ const TaskTracker = (function() {
     var employees    = [];
     var counts       = { total: 0, 'to-do': 0, 'in-progress': 0, done: 0 };
     var activeFilter = null;   // null = all, 'to-do', 'in-progress', 'done'
+    var expandedGroups = new Set();  // safeId strings of expanded project groups
 
     var isInitialized  = false;
     var deleteTargetId = null;
@@ -61,6 +62,7 @@ const TaskTracker = (function() {
         el.filterStatus   = document.getElementById('ttFilterStatus');
         el.filterPriority = document.getElementById('ttFilterPriority');
         el.filterAssignee = document.getElementById('ttFilterAssignee');
+        el.sortBy         = document.getElementById('ttSortBy');
 
         // Table
         el.tableBody = document.getElementById('ttTableBody');
@@ -78,7 +80,12 @@ const TaskTracker = (function() {
         el.taskPriority = document.getElementById('ttTaskPriority');
         el.taskStatus   = document.getElementById('ttTaskStatus');
         el.taskDue      = document.getElementById('ttTaskDue');
-        el.taskAssignee = document.getElementById('ttTaskAssignee');
+
+        // Multi-select assignee
+        el.assigneeWrap        = document.getElementById('ttTaskAssigneeWrap');
+        el.assigneeTrigger     = document.getElementById('ttTaskAssigneeTrigger');
+        el.assigneePlaceholder = document.getElementById('ttAssigneePlaceholder');
+        el.assigneeDropdown    = document.getElementById('ttTaskAssigneeDropdown');
 
         // Delete modal
         el.deleteModal = document.getElementById('ttDeleteModal');
@@ -95,13 +102,13 @@ const TaskTracker = (function() {
         });
 
         el.filterStatus.addEventListener('change', function() {
-            // Keep stat cards in sync with dropdown
             activeFilter = el.filterStatus.value || null;
             updateStatCardState();
             loadTasks();
         });
         el.filterPriority.addEventListener('change', loadTasks);
         el.filterAssignee.addEventListener('change', loadTasks);
+        el.sortBy.addEventListener('change', renderTasks);
 
         el.taskForm.addEventListener('submit', handleSaveTask);
 
@@ -119,11 +126,18 @@ const TaskTracker = (function() {
             if (!card) return;
             card.addEventListener('click', function() { handleStatCardClick(card.dataset.filter); });
         });
+
+        // Assignee multi-select
+        el.assigneeTrigger.addEventListener('click', toggleAssigneeDropdown);
+        document.addEventListener('click', function(e) {
+            if (el.assigneeWrap && !el.assigneeWrap.contains(e.target)) {
+                closeAssigneeDropdown();
+            }
+        });
     }
 
     // ── Stat card filter ───────────────────────────────────────────────────
     function handleStatCardClick(filter) {
-        // Clicking same filter or "Total" (filter='') → deselect
         if (filter === '' || activeFilter === filter) {
             activeFilter = null;
             el.filterStatus.value = '';
@@ -181,17 +195,89 @@ const TaskTracker = (function() {
     }
 
     function populateAssigneeDropdowns() {
-        var options = '<option value="">Unassigned</option>';
-        employees.forEach(function(emp) {
-            options += '<option value="' + emp.id + '">' + emp.name + '</option>';
-        });
-        el.taskAssignee.innerHTML = options;
+        // Form: checkbox list in custom dropdown
+        if (el.assigneeDropdown) {
+            el.assigneeDropdown.innerHTML = employees.map(function(emp) {
+                return '<label class="tt-assignee-option" onclick="event.stopPropagation()">' +
+                    '<input type="checkbox" class="tt-assignee-cb" value="' + emp.id + '" data-name="' + escapeHtml(emp.name) + '">' +
+                    escapeHtml(emp.name) +
+                    '</label>';
+            }).join('');
+            el.assigneeDropdown.querySelectorAll('.tt-assignee-cb').forEach(function(cb) {
+                cb.addEventListener('change', updateAssigneeTrigger);
+            });
+        }
 
+        // Filter dropdown (single select, unchanged)
         var filterOptions = '<option value="">All Assignees</option>';
         employees.forEach(function(emp) {
             filterOptions += '<option value="' + emp.id + '">' + emp.name + '</option>';
         });
         el.filterAssignee.innerHTML = filterOptions;
+    }
+
+    // ── Assignee multi-select helpers ──────────────────────────────────────
+    function toggleAssigneeDropdown(e) {
+        e.stopPropagation();
+        if (el.assigneeDropdown.classList.contains('open')) {
+            closeAssigneeDropdown();
+        } else {
+            openAssigneeDropdown();
+        }
+    }
+
+    function openAssigneeDropdown() {
+        var rect = el.assigneeTrigger.getBoundingClientRect();
+        el.assigneeDropdown.style.top   = rect.bottom + 'px';
+        el.assigneeDropdown.style.left  = rect.left   + 'px';
+        el.assigneeDropdown.style.width = rect.width  + 'px';
+        el.assigneeDropdown.classList.add('open');
+        el.assigneeTrigger.classList.add('open');
+    }
+
+    function closeAssigneeDropdown() {
+        el.assigneeDropdown.classList.remove('open');
+        el.assigneeTrigger.classList.remove('open');
+    }
+
+    function updateAssigneeTrigger() {
+        var cbs = el.assigneeDropdown.querySelectorAll('.tt-assignee-cb:checked');
+        if (!cbs.length) {
+            el.assigneePlaceholder.textContent = 'Unassigned';
+            el.assigneePlaceholder.className = '';
+        } else if (cbs.length === 1) {
+            el.assigneePlaceholder.textContent = cbs[0].dataset.name;
+            el.assigneePlaceholder.className = 'tt-sel-tag';
+        } else {
+            el.assigneePlaceholder.textContent = cbs.length + ' assignees selected';
+            el.assigneePlaceholder.className = 'tt-sel-tag';
+        }
+    }
+
+    function getSelectedAssignees() {
+        var ids = [], names = [];
+        if (el.assigneeDropdown) {
+            el.assigneeDropdown.querySelectorAll('.tt-assignee-cb:checked').forEach(function(cb) {
+                ids.push(parseInt(cb.value));
+                names.push(cb.dataset.name);
+            });
+        }
+        return { ids: ids, names: names };
+    }
+
+    function setSelectedAssignees(ids) {
+        if (!el.assigneeDropdown) return;
+        var idSet = new Set((ids || []).map(Number));
+        el.assigneeDropdown.querySelectorAll('.tt-assignee-cb').forEach(function(cb) {
+            cb.checked = idSet.has(parseInt(cb.value));
+        });
+        updateAssigneeTrigger();
+    }
+
+    function clearAssignees() {
+        if (!el.assigneeDropdown) return;
+        el.assigneeDropdown.querySelectorAll('.tt-assignee-cb').forEach(function(cb) { cb.checked = false; });
+        updateAssigneeTrigger();
     }
 
     // ── Data: load tasks ───────────────────────────────────────────────────
@@ -242,10 +328,26 @@ const TaskTracker = (function() {
         var projectMap = {};
         projects.forEach(function(p) { projectMap[p.code] = p.name; });
 
-        // Group tasks by project code (null/empty → '__general__')
+        // Sort by deadline if requested
+        var displayTasks = tasks;
+        var sortVal = el.sortBy ? el.sortBy.value : '';
+        if (sortVal) {
+            displayTasks = tasks.slice();
+            displayTasks.sort(function(a, b) {
+                var da = a.due_date || null;
+                var db = b.due_date || null;
+                if (!da && !db) return 0;
+                if (!da) return 1;
+                if (!db) return -1;
+                return sortVal === 'due_asc' ? (da < db ? -1 : da > db ? 1 : 0)
+                                             : (da > db ? -1 : da < db ? 1 : 0);
+            });
+        }
+
+        // Group tasks by project code
         var groups     = {};
         var groupOrder = [];
-        tasks.forEach(function(task) {
+        displayTasks.forEach(function(task) {
             var code = task.project || '__general__';
             if (!groups[code]) {
                 var name = task.project
@@ -259,21 +361,20 @@ const TaskTracker = (function() {
 
         var html = '';
         groupOrder.forEach(function(code) {
-            var g      = groups[code];
-            var safeId = code.replace(/[^a-zA-Z0-9]/g, '-');
-            var chevId = 'tt-pchev-' + safeId;
+            var g          = groups[code];
+            var safeId     = code.replace(/[^a-zA-Z0-9]/g, '-');
+            var chevId     = 'tt-pchev-' + safeId;
+            var isExpanded = expandedGroups.has(safeId);
 
-            // Project header row (always visible)
             html += '<tr class="tt-project-row" onclick="TaskTracker._toggleProject(\'' + safeId + '\',\'' + chevId + '\')">' +
                 '<td colspan="6">' +
-                    '<span class="tt-project-chevron" id="' + chevId + '">&#9654;</span>' +
+                    '<span class="tt-project-chevron" id="' + chevId + '" style="transform:rotate(' + (isExpanded ? 90 : 0) + 'deg)">&#9654;</span>' +
                     (g.displayCode ? '<span class="tt-project-badge">' + escapeHtml(g.displayCode) + '</span>' : '') +
                     '<span class="tt-project-name">' + escapeHtml(g.name) + '</span>' +
                     '<span class="tt-project-count">' + g.tasks.length + ' task' + (g.tasks.length !== 1 ? 's' : '') + '</span>' +
                 '</td>' +
             '</tr>';
 
-            // Task rows — all start hidden (collapsed)
             g.tasks.forEach(function(task) {
                 var priorityClass = 'tt-priority-' + task.priority;
                 var dueHtml = '';
@@ -294,13 +395,28 @@ const TaskTracker = (function() {
                         '<option value="done"'       + (task.status === 'done'        ? ' selected' : '') + '>Done</option>' +
                       '</select>';
 
-                html += '<tr class="tt-task-row tt-row-hidden" data-group="' + safeId + '">' +
+                // Assignee display — support both old and new format
+                var aNames = task.assignee_names || (task.assignee_name ? [task.assignee_name] : []);
+                var assigneeHtml;
+                if (!aNames.length) {
+                    assigneeHtml = '<span style="color:#bbb">Unassigned</span>';
+                } else if (aNames.length === 1) {
+                    assigneeHtml = escapeHtml(aNames[0]);
+                } else {
+                    assigneeHtml = '<span class="tt-multi-assignee">' +
+                        aNames.map(function(n) {
+                            return '<span class="tt-asgn-chip">' + escapeHtml(n) + '</span>';
+                        }).join('') +
+                        '</span>';
+                }
+
+                html += '<tr class="tt-task-row' + (isExpanded ? '' : ' tt-row-hidden') + '" data-group="' + safeId + '">' +
                     '<td data-label="Title"><div class="tt-task-title">' + escapeHtml(task.title) + '</div>' +
                         (task.description ? '<div class="tt-task-desc">' + escapeHtml(task.description) + '</div>' : '') +
                     '</td>' +
                     '<td data-label="Priority"><span class="tt-priority ' + priorityClass + '">' + task.priority + '</span></td>' +
                     '<td data-label="Status">' + statusCell + '</td>' +
-                    '<td data-label="Assignee">' + (task.assignee_name ? escapeHtml(task.assignee_name) : '<span style="color:#bbb">Unassigned</span>') + '</td>' +
+                    '<td data-label="Assignee">' + assigneeHtml + '</td>' +
                     '<td data-label="Due Date">' + dueHtml + '</td>' +
                     '<td data-label="Actions"><div class="tt-actions">' +
                         '<button class="tt-action-btn" onclick="TaskTracker.editTask(' + task.id + ')" title="Edit"><i class="fas fa-pen"></i></button>' +
@@ -321,6 +437,11 @@ const TaskTracker = (function() {
         var isHidden = rows[0].classList.contains('tt-row-hidden');
         rows.forEach(function(r) { r.classList.toggle('tt-row-hidden', !isHidden); });
         if (chev) chev.style.transform = 'rotate(' + (isHidden ? 90 : 0) + 'deg)';
+        if (isHidden) {
+            expandedGroups.add(safeId);
+        } else {
+            expandedGroups.delete(safeId);
+        }
     }
 
     // ── CRUD ───────────────────────────────────────────────────────────────
@@ -331,6 +452,7 @@ const TaskTracker = (function() {
         el.taskPriority.value = 'medium';
         el.taskStatus.value   = 'to-do';
         if (el.taskProject) el.taskProject.value = '';
+        clearAssignees();
         el.taskModal.classList.add('active');
     }
 
@@ -344,31 +466,31 @@ const TaskTracker = (function() {
         el.taskPriority.value = task.priority;
         el.taskStatus.value   = task.status === 'pending-approval' ? 'in-progress' : task.status;
         el.taskDue.value      = task.due_date || '';
-        el.taskAssignee.value = task.assignee_id || '';
         if (el.taskProject) el.taskProject.value = task.project || '';
+        // Support both old single and new multi-assignee format
+        var ids = task.assignee_ids || (task.assignee_id ? [task.assignee_id] : []);
+        setSelectedAssignees(ids);
         el.taskModal.classList.add('active');
     }
 
-    function closeTaskModal() { el.taskModal.classList.remove('active'); }
+    function closeTaskModal() {
+        el.taskModal.classList.remove('active');
+        closeAssigneeDropdown();
+    }
 
     function handleSaveTask(e) {
         e.preventDefault();
-        var id         = el.taskId.value;
-        var assigneeId = el.taskAssignee.value;
-        var assigneeName = '';
-        if (assigneeId) {
-            var emp = employees.find(function(e) { return e.id === parseInt(assigneeId); });
-            if (emp) assigneeName = emp.name;
-        }
+        var id  = el.taskId.value;
+        var sel = getSelectedAssignees();
         var payload = {
-            title:         el.taskTitle.value.trim(),
-            description:   el.taskDesc.value.trim(),
-            priority:      el.taskPriority.value,
-            status:        el.taskStatus.value,
-            due_date:      el.taskDue.value || null,
-            assignee_id:   assigneeId ? parseInt(assigneeId) : null,
-            assignee_name: assigneeName || null,
-            project:       (el.taskProject && el.taskProject.value) ? el.taskProject.value : null
+            title:          el.taskTitle.value.trim(),
+            description:    el.taskDesc.value.trim(),
+            priority:       el.taskPriority.value,
+            status:         el.taskStatus.value,
+            due_date:       el.taskDue.value || null,
+            assignee_ids:   sel.ids,
+            assignee_names: sel.names,
+            project:        (el.taskProject && el.taskProject.value) ? el.taskProject.value : null
         };
         if (!payload.title) return;
 

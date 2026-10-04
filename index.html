@@ -1244,6 +1244,11 @@
                         <select id="ttFilterAssignee">
                             <option value="">All Assignees</option>
                         </select>
+                        <select id="ttSortBy">
+                            <option value="">Sort: Default</option>
+                            <option value="due_asc">Deadline ↑ Earliest</option>
+                            <option value="due_desc">Deadline ↓ Latest</option>
+                        </select>
                     </div>
                 </div>
 
@@ -2438,10 +2443,14 @@
                             <input type="date" id="ttTaskDue">
                         </div>
                         <div class="tt-form-group">
-                            <label for="ttTaskAssignee">Assignee</label>
-                            <select id="ttTaskAssignee">
-                                <option value="">Unassigned</option>
-                            </select>
+                            <label>Assignees</label>
+                            <div class="tt-assignee-select" id="ttTaskAssigneeWrap">
+                                <div class="tt-assignee-trigger" id="ttTaskAssigneeTrigger">
+                                    <span id="ttAssigneePlaceholder">Unassigned</span>
+                                    <i class="fas fa-chevron-down tt-assignee-chev"></i>
+                                </div>
+                                <div class="tt-assignee-dropdown" id="ttTaskAssigneeDropdown"></div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -807,11 +807,11 @@ async function handleAPI(req, res, pathname, query) {
             let tasks = data.tasks;
             if (!isAdmin(session)) {
                 const empId = await getEmployeeId(session.email);
-                tasks = empId !== null ? tasks.filter(t => t.assignee_id === empId) : [];
+                tasks = empId !== null ? tasks.filter(t => (t.assignee_ids || []).includes(empId)) : [];
             }
             // Apply all filters except status first
             if (query.priority) tasks = tasks.filter(t => t.priority === query.priority);
-            if (query.assignee_id) tasks = tasks.filter(t => t.assignee_id === parseInt(query.assignee_id));
+            if (query.assignee_id) tasks = tasks.filter(t => (t.assignee_ids || []).includes(parseInt(query.assignee_id)));
             if (query.project)  tasks = tasks.filter(t => t.project === query.project);
             if (query.search) {
                 const s = query.search.toLowerCase().slice(0, 100);
@@ -847,8 +847,8 @@ async function handleAPI(req, res, pathname, query) {
                 priority:      priorities.includes(body.priority) ? body.priority : 'medium',
                 status:        statuses.includes(body.status)     ? body.status   : 'to-do',
                 due_date:      isDate(body.due_date) ? body.due_date : null,
-                assignee_id:   body.assignee_id ? parseInt(body.assignee_id) : null,
-                assignee_name: isStr(body.assignee_name, 100) ? body.assignee_name.trim() : null,
+                assignee_ids:   Array.isArray(body.assignee_ids) ? body.assignee_ids.map(id => parseInt(id)).filter(n => !isNaN(n)) : [],
+                assignee_names: Array.isArray(body.assignee_names) ? body.assignee_names.map(n => String(n).slice(0, 100).trim()).filter(Boolean) : [],
                 project:       isStr(body.project, 100) ? body.project.trim() : null,
                 created_at:    new Date().toISOString(),
                 updated_at:    new Date().toISOString()
@@ -880,7 +880,7 @@ async function handleAPI(req, res, pathname, query) {
                     type: 'task',
                     ref_id: task.id,
                     title: 'Task Completion: ' + task.title,
-                    details: { task_id: task.id, title: task.title, description: task.description, assignee_name: task.assignee_name, project: task.project, due_date: task.due_date, priority: task.priority },
+                    details: { task_id: task.id, title: task.title, description: task.description, assignee_names: task.assignee_names || [], project: task.project, due_date: task.due_date, priority: task.priority },
                     submitted_by_id: session ? session.userId : null,
                     submitted_by_name: session ? session.name : 'Unknown',
                     submitted_at: new Date().toISOString(),
@@ -936,9 +936,9 @@ async function handleAPI(req, res, pathname, query) {
             if (body.priority    !== undefined) task.priority    = priorities.includes(body.priority) ? body.priority : task.priority;
             if (body.status      !== undefined) task.status      = statuses.includes(body.status)     ? body.status   : task.status;
             if (body.due_date    !== undefined) task.due_date    = isDate(body.due_date) ? body.due_date : null;
-            if (body.assignee_id !== undefined) {
-                task.assignee_id   = body.assignee_id ? parseInt(body.assignee_id) : null;
-                task.assignee_name = isStr(body.assignee_name, 100) ? body.assignee_name.trim() : null;
+            if (body.assignee_ids !== undefined) {
+                task.assignee_ids   = Array.isArray(body.assignee_ids) ? body.assignee_ids.map(id => parseInt(id)).filter(n => !isNaN(n)) : [];
+                task.assignee_names = Array.isArray(body.assignee_names) ? body.assignee_names.map(n => String(n).slice(0, 100).trim()).filter(Boolean) : [];
             }
             if (body.project !== undefined) task.project = isStr(body.project, 100) ? body.project.trim() : null;
             task.updated_at = new Date().toISOString();
@@ -1038,17 +1038,17 @@ async function handleAPI(req, res, pathname, query) {
         const { tasks } = await loadTasks();
         tasks.forEach(t => {
             if (!t.due_date) return;
-            if (calEmpId !== null && t.assignee_id !== calEmpId) return;
+            if (calEmpId !== null && !(t.assignee_ids || []).includes(calEmpId)) return;
             const [tY, tM] = t.due_date.split('-').map(Number);
             if (tY === year && tM === month) {
-                combined.push({ id: 't-' + t.id, title: t.title, type: 'task', date: t.due_date, priority: t.priority, status: t.status, assignee: t.assignee_name, description: t.description || '', source: 'local' });
+                combined.push({ id: 't-' + t.id, title: t.title, type: 'task', date: t.due_date, priority: t.priority, status: t.status, assignee: (t.assignee_names || []).join(', ') || null, description: t.description || '', source: 'local' });
             }
         });
 
         // 4) Project end-date milestones
         const { projects: calProjects } = await loadProjects();
         const calEmpProjectCodes = calEmpId !== null && !isAdminOrManager(session)
-            ? new Set(tasks.filter(t => t.assignee_id === calEmpId && t.project).map(t => t.project))
+            ? new Set(tasks.filter(t => (t.assignee_ids || []).includes(calEmpId) && t.project).map(t => t.project))
             : null;
         calProjects.forEach(p => {
             if (!p.end_date) return;
@@ -1526,7 +1526,7 @@ async function handleAPI(req, res, pathname, query) {
                 } else {
                     const { tasks } = await loadTasks();
                     const empProjectCodes = new Set(
-                        tasks.filter(t => t.assignee_id === empId && t.project).map(t => t.project)
+                        tasks.filter(t => (t.assignee_ids || []).includes(empId) && t.project).map(t => t.project)
                     );
                     projects = projects.filter(p => empProjectCodes.has(p.code));
                 }
